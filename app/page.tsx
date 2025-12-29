@@ -55,6 +55,57 @@ export default async function HomePage() {
   }));
 
   return (
+    // <div className="min-h-screen pb-20 md:pb-0">
+    //   <Header />
+    //   <HeroCarousel />
+    //   <main className="container mx-auto px-4 py-8" id="menu">
+    //     <div className="mb-8 flex justify-center">
+    //       <SearchBar />
+    //     </div>
+
+    //     <CategoryFilter categories={categories || []} />
+    //     <MenuGrid menuItems={normalizedMenuItems || []} />
+
+    //     <div className="my-8">
+    //       <SpecialOffers />
+    //     </div>
+
+    //     {user && (
+    //       <div className="mb-8">
+    //         <QuickReorder userId={user.id} />
+    //       </div>
+    //     )}
+    //   </main>
+    //   <BottomNav />
+    // </div>
+    // <div className="min-h-screen pb-20 md:pb-0">
+    //   <Header />
+    //   <HeroCarousel />
+
+    //   <div className="mb-8 container mx-auto px-4 pt-8">
+    //     <div className="flex justify-center">
+    //       <SearchBar />
+    //     </div>
+    //   </div>
+
+    //   {/* Sticky Category Filter - outside main container */}
+    //   <CategoryFilter categories={categories || []} />
+
+    //   <main className="container mx-auto px-4 py-8" id="menu">
+    //     <MenuGrid menuItems={normalizedMenuItems || []} />
+
+    //     <div className="my-8">
+    //       <SpecialOffers />
+    //     </div>
+
+    //     {user && (
+    //       <div className="mb-8">
+    //         <QuickReorder userId={user.id} />
+    //       </div>
+    //     )}
+    //   </main>
+    //   <BottomNav />
+    // </div>
     <div className="min-h-screen pb-20 md:pb-0">
       <Header />
       <HeroCarousel />
@@ -63,7 +114,17 @@ export default async function HomePage() {
           <SearchBar />
         </div>
 
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-card-foreground mb-2">
+            Our <span className="text-primary">Menu</span>
+          </h2>
+          <p className="text-muted-foreground">
+            Explore our late-night favorites
+          </p>
+        </div>
+
         <CategoryFilter categories={categories || []} />
+
         <MenuGrid menuItems={normalizedMenuItems || []} />
 
         <div className="my-8">

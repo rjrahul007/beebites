@@ -97,3 +97,11 @@
 
   /* Removed html { @apply dark; } - dark class is applied directly in layout.tsx */
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
