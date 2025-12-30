@@ -443,7 +443,7 @@
 // version-3
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -482,6 +482,13 @@ interface MenuGridProps {
 // Premium Menu Card Component
 function MenuCard({ item }: { item: MenuItem }) {
   const { addItem, removeItem, getItemQuantity } = useCart();
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure cart data is loaded before accessing quantity
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const quantity = getItemQuantity(item.id);
   const isBeverage = item.category.slug === "beverages";
 

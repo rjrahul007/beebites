@@ -69,9 +69,8 @@ import { NextResponse } from "next/server";
 import { requireAuth, requireStaff } from "@/lib/auth/require-auth";
 import { ADMIN_ROLES, USER_ROLE } from "@/lib/domain/auth";
 import { ORDER_STATUS } from "@/lib/domain/order";
-
+export const dynamic = "force-dynamic";
 /* Cache analytics for 30 seconds */
-export const revalidate = 30;
 
 export async function GET() {
   try {
