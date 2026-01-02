@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Home } from "lucide-react";
+import BackToHome from "@/components/ui/back-to-home";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -149,6 +151,7 @@ export default function LoginPage() {
                 Sign up
               </Link>
             </div>
+            <BackToHome />
           </CardContent>
         </Card>
       </div>

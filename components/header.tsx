@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { User, Pizza, BellElectric } from "lucide-react";
@@ -12,8 +13,8 @@ import {
 import { CartButton } from "@/components/cart-button";
 import { NotificationProvider } from "@/components/notification-provider";
 import { SignOutButton } from "@/components/sign-out-button";
-import { IoFastFood, IoFastFoodOutline } from "react-icons/io5";
 import Image from "next/image";
+
 export async function Header() {
   const supabase = await createClient();
   const {
@@ -24,7 +25,7 @@ export async function Header() {
   if (user) {
     const { data } = await supabase
       .from("profiles")
-      .select("*")
+      .select("full_name, role")
       .eq("id", user.id)
       .single();
     profile = data;
@@ -41,13 +42,6 @@ export async function Header() {
             height={150}
             className="-mr-10 -mt-4"
           />
-          {/* <IoFastFoodOutline className="h-8 w-8 text-primary" /> */}
-          {/* <span className="text-xl font-bold text-balance hidden sm:inline">
-            BeeBites
-          </span> */}
-          {/* <span className="text-xl font-bold text-balance sm:hidden">
-            BeeBites
-          </span> */}
           <span className="text-xl font-bold">Bites</span>
         </Link>
 
@@ -81,9 +75,7 @@ export async function Header() {
                     <Link href="/profile">Profile Settings</Link>
                   </DropdownMenuItem>
                   {profile?.role &&
-                    ["ADMIN", "SUPER_ADMIN", "KITCHEN", "DELIVERY"].includes(
-                      profile.role
-                    ) && (
+                    ["ADMIN", "KITCHEN", "DELIVERY"].includes(profile.role) && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
@@ -93,7 +85,7 @@ export async function Header() {
                     )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <SignOutButton />
+                    <SignOutButton className="items-start justify-start" />
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

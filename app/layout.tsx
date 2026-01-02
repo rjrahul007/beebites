@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { PWAPrompt } from "@/components/pwa-prompt";
 import "./globals.css";
-
+import { cookies } from "next/headers";
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
@@ -48,6 +48,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  cookies(); // to make sure cookies are available in the client components
   return (
     <html lang="en" className="dark">
       <body className={`font-sans antialiased`}>

@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import BackToHome from "@/components/ui/back-to-home";
 
 export default function SignUpPage() {
   const [fullName, setFullName] = useState("");
@@ -208,6 +209,7 @@ export default function SignUpPage() {
                 Sign in
               </Link>
             </div>
+            <BackToHome />
           </CardContent>
         </Card>
       </div>

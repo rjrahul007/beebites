@@ -4,6 +4,7 @@ import { CategoryFilter } from "@/components/category-filter";
 import { MenuGrid } from "@/components/menu-grid";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { BottomNav } from "@/components/bottom-nav";
+import { Footer } from "@/components/footer";
 import { SearchBar } from "@/components/search-bar";
 import { QuickReorder } from "@/components/quick-reorder";
 import { SpecialOffers } from "@/components/special-offers";
@@ -136,6 +137,7 @@ export default async function HomePage() {
             <QuickReorder userId={user.id} />
           </div>
         )}
+        <Footer />
       </main>
       <BottomNav />
     </div>

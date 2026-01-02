@@ -444,17 +444,18 @@
 "use client";
 
 import { useMemo, useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, Leaf, Clock, Flame, Star } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Leaf,
+  Clock,
+  Flame,
+  Star,
+  TrendingUp,
+} from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useMenuFilters } from "@/hooks/use-menu-filters";
 import Image from "next/image";
@@ -495,7 +496,7 @@ function MenuCard({ item }: { item: MenuItem }) {
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-0 bg-card shadow-sm p-0">
       {/* Premium Image with Overlay */}
-      <div className="relative h-40 md:h-44 w-full overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
+      <div className="relative h-40 md:h-44 w-full overflow-hidden bg-linear-to-br from-muted/50 to-muted">
         <Image
           src={item.image_url || "/placeholder.svg"}
           alt={item.name}
@@ -505,7 +506,7 @@ function MenuCard({ item }: { item: MenuItem }) {
         />
 
         {/* Gradient Overlay for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
 
         {/* Veg/Non-Veg Badge - Top Left */}
         {!isBeverage && (
@@ -581,7 +582,7 @@ function MenuCard({ item }: { item: MenuItem }) {
               >
                 <Minus className="h-3 w-3" />
               </Button>
-              <span className="text-sm font-bold text-primary min-w-[20px] text-center">
+              <span className="text-sm font-bold text-primary min-w-5 text-center">
                 {quantity}
               </span>
               <Button
@@ -688,21 +689,19 @@ export function MenuGrid({ menuItems }: MenuGridProps) {
         <section>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-xl font-bold text-foreground">
-                Popular Right Now
+              <h3 className="text-xl font-bold text-foreground flex justify-center items-center gap-2">
+                <TrendingUp className="w-7 h-7 text-primary" />
+                Popular Right Now 🔥
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Most ordered items this week
               </p>
             </div>
           </div>
-          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:-mx-0 md:px-0">
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             <div className="flex gap-4 pb-2">
               {popularItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="w-[170px] md:w-[200px] flex-shrink-0"
-                >
+                <div key={item.id} className="w-42.5 md:w-50 shrink-0">
                   <MenuCard item={item} />
                 </div>
               ))}
@@ -724,13 +723,10 @@ export function MenuGrid({ menuItems }: MenuGridProps) {
               </p>
             </div>
           </div>
-          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:-mx-0 md:px-0">
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             <div className="flex gap-4 pb-2">
               {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="w-[170px] md:w-[200px] flex-shrink-0"
-                >
+                <div key={item.id} className="w-42.5 md:w-50 shrink-0">
                   <MenuCard item={item} />
                 </div>
               ))}
