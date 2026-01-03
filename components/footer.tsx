@@ -1,4 +1,12 @@
-import { Moon, Instagram, Twitter, Facebook } from "lucide-react";
+import {
+  Moon,
+  Instagram,
+  Twitter,
+  Facebook,
+  PhoneCallIcon,
+  Mail,
+  MapPinnedIcon,
+} from "lucide-react";
 import Image from "next/image";
 
 export function Footer() {
@@ -91,9 +99,17 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-card-foreground mb-4">Contact</h3>
             <ul className="space-y-2 text-muted-foreground text-sm">
-              <li>📞 +91 98765 43210</li>
-              <li>📧 info@beebites.in</li>
-              <li>📍 Dimapur, Nagaland</li>
+              <li className="hover:text-primary">
+                <PhoneCallIcon className="w-4 h-4 inline mr-2" /> +91 98765
+                43210
+              </li>
+              <li className="hover:text-primary">
+                <Mail className="w-4 h-4 inline mr-2" /> info@beebites.in
+              </li>
+              <li className="hover:text-primary">
+                <MapPinnedIcon className="w-4 h-4 inline mr-2" /> Dimapur,
+                Nagaland
+              </li>
             </ul>
           </div>
         </div>
