@@ -48,7 +48,9 @@ export async function Header() {
         <nav className="flex items-center space-x-2 md:space-x-4">
           {user ? (
             <>
-              <NotificationProvider userId={user.id} />
+              {!["ADMIN", "KITCHEN", "DELIVERY"].includes(
+                profile?.role || ""
+              ) && <NotificationProvider userId={user.id} />}
               <CartButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
