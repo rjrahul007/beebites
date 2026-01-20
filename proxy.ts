@@ -195,8 +195,21 @@ export async function updateSession(request: NextRequest) {
     user &&
     (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/signup"))
   ) {
+    if (["ADMIN", "KITCHEN", "DELIVERY"].includes(role ?? "")) {
+      return redirectTo("/admin", request);
+    }
+
     return redirectTo("/", request);
   }
+
+  /* ---------- HOME PAGE REDIRECT ---------- */
+  // if (
+  //   user &&
+  //   pathname === "/" &&
+  //   ["ADMIN", "KITCHEN", "DELIVERY"].includes(role ?? "")
+  // ) {
+  //   return redirectTo("/admin", request);
+  // }
 
   /* ---------- ADMIN ROUTES ---------- */
   if (pathname.startsWith("/admin")) {
