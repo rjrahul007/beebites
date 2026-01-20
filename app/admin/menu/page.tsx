@@ -19,9 +19,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { compressImageFile } from "@/lib/images/compress-image";
+import { toast } from "sonner";
+
 import { useRouter } from "next/navigation";
 
 /* ---------------- TYPES ---------------- */
+
+// type MenuItem = {
+//   id: string;
+//   name: string;
+//   price: number | null;
+//   category_id: string | null;
+//   image_url: string | null;
+//   category?: { id: string; name: string };
+// };
 
 type MenuItem = {
   id: string;
@@ -29,6 +41,7 @@ type MenuItem = {
   price: number | null;
   category_id: string | null;
   image_url: string | null;
+  image_path: string | null; // ✅ add this
   category?: { id: string; name: string };
 };
 
@@ -38,11 +51,19 @@ type Category = {
   slug?: string;
 };
 
+// type FormState = {
+//   name: string;
+//   price: string;
+//   category_id: string | null;
+//   image_url: string | null;
+// };
+
 type FormState = {
   name: string;
   price: string;
   category_id: string | null;
   image_url: string | null;
+  image_path: string | null; // ✅ add this
 };
 
 type AdminRole = "ADMIN" | "KITCHEN";
@@ -55,11 +76,19 @@ export default function AdminMenuPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // const [form, setForm] = useState<FormState>({
+  //   name: "",
+  //   price: "",
+  //   category_id: null,
+  //   image_url: null,
+  // });
+
   const [form, setForm] = useState<FormState>({
     name: "",
     price: "",
     category_id: null,
     image_url: null,
+    image_path: null,
   });
 
   const [uploading, setUploading] = useState(false);
@@ -114,32 +143,86 @@ export default function AdminMenuPage() {
 
   /* ---------------- IMAGE UPLOAD (MOCKED) ---------------- */
 
+  // const uploadImage = async (file: File) => {
+  //   if (!file.type.startsWith("image/")) {
+  //     alert("Please upload an image file");
+  //     return null;
+  //   }
+
+  //   if (file.size > 5 * 1024 * 1024) {
+  //     alert("Image size must be less than 5MB");
+  //     return null;
+  //   }
+
+  //   try {
+  //     setUploading(true);
+
+  //     const reader = new FileReader();
+  //     return new Promise<string | null>((resolve) => {
+  //       reader.onload = (e) => {
+  //         const dataUrl = e.target?.result as string;
+  //         setForm((s) => ({ ...s, image_url: dataUrl }));
+  //         resolve(dataUrl);
+  //       };
+  //       reader.readAsDataURL(file);
+  //     });
+  //   } catch (err) {
+  //     console.error("Image upload failed", err);
+  //     alert("Image upload failed");
+  //     return null;
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+
   const uploadImage = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       alert("Please upload an image file");
       return null;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be less than 5MB");
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image size must be less than 2MB");
       return null;
     }
 
     try {
       setUploading(true);
 
-      const reader = new FileReader();
-      return new Promise<string | null>((resolve) => {
-        reader.onload = (e) => {
-          const dataUrl = e.target?.result as string;
-          setForm((s) => ({ ...s, image_url: dataUrl }));
-          resolve(dataUrl);
-        };
-        reader.readAsDataURL(file);
+      // ✅ compress client-side
+      const compressed = await compressImageFile(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+        outputFormat: "image/webp",
       });
+
+      const formData = new FormData();
+      formData.append("file", compressed);
+
+      const res = await fetch("/api/admin/menu/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data?.error || "Upload failed");
+        return null;
+      }
+
+      // ✅ Store both (path is used for deleting later)
+      setForm((s) => ({
+        ...s,
+        image_url: data.publicUrl,
+        image_path: data.path,
+      }));
+
+      return data.publicUrl as string;
     } catch (err) {
-      console.error("Image upload failed", err);
-      alert("Image upload failed");
+      console.error("Upload failed:", err);
+      alert("Upload failed");
       return null;
     } finally {
       setUploading(false);
@@ -178,6 +261,7 @@ export default function AdminMenuPage() {
     });
 
     if (res.ok) {
+      toast.success("Menu item created ✅");
       handleClear();
       await fetchItems();
     } else {
@@ -198,6 +282,7 @@ export default function AdminMenuPage() {
     });
 
     if (res.ok) {
+      toast.success("Menu item updated ✅");
       handleClear();
       await fetchItems();
     } else {
@@ -215,6 +300,7 @@ export default function AdminMenuPage() {
     });
 
     if (res.ok) {
+      toast.success("Menu item deleted ✅");
       await fetchItems();
     } else {
       alert("Failed to delete item");
@@ -228,12 +314,20 @@ export default function AdminMenuPage() {
       price: item.price != null ? String(item.price) : "",
       category_id: item.category_id,
       image_url: item.image_url,
+      image_path: item.image_path, // ✅ add this
     });
   };
 
   const handleClear = () => {
     setEditingId(null);
-    setForm({ name: "", price: "", category_id: null, image_url: null });
+    setForm({
+      name: "",
+      price: "",
+      category_id: null,
+      image_url: null,
+      image_path: null,
+    });
+
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -335,7 +429,13 @@ export default function AdminMenuPage() {
                         className="w-full h-48 object-cover rounded-md"
                       />
                       <Button
-                        onClick={() => setForm({ ...form, image_url: null })}
+                        onClick={() =>
+                          setForm((s) => ({
+                            ...s,
+                            image_url: null,
+                            image_path: null,
+                          }))
+                        }
                         variant="destructive"
                         size="icon"
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"

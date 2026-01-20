@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { PWAPrompt } from "@/components/pwa-prompt";
 import "./globals.css";
 import { cookies } from "next/headers";
+import { Toaster } from "sonner";
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
@@ -55,6 +56,7 @@ export default function RootLayout({
         {children}
         <PWAPrompt />
         <Analytics />
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
