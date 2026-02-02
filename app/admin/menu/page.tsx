@@ -23,17 +23,9 @@ import { compressImageFile } from "@/lib/images/compress-image";
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 /* ---------------- TYPES ---------------- */
-
-// type MenuItem = {
-//   id: string;
-//   name: string;
-//   price: number | null;
-//   category_id: string | null;
-//   image_url: string | null;
-//   category?: { id: string; name: string };
-// };
 
 type MenuItem = {
   id: string;
@@ -50,13 +42,6 @@ type Category = {
   name: string;
   slug?: string;
 };
-
-// type FormState = {
-//   name: string;
-//   price: string;
-//   category_id: string | null;
-//   image_url: string | null;
-// };
 
 type FormState = {
   name: string;
@@ -75,13 +60,6 @@ export default function AdminMenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // const [form, setForm] = useState<FormState>({
-  //   name: "",
-  //   price: "",
-  //   category_id: null,
-  //   image_url: null,
-  // });
 
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -142,38 +120,6 @@ export default function AdminMenuPage() {
   }, [items, searchQuery]);
 
   /* ---------------- IMAGE UPLOAD (MOCKED) ---------------- */
-
-  // const uploadImage = async (file: File) => {
-  //   if (!file.type.startsWith("image/")) {
-  //     alert("Please upload an image file");
-  //     return null;
-  //   }
-
-  //   if (file.size > 5 * 1024 * 1024) {
-  //     alert("Image size must be less than 5MB");
-  //     return null;
-  //   }
-
-  //   try {
-  //     setUploading(true);
-
-  //     const reader = new FileReader();
-  //     return new Promise<string | null>((resolve) => {
-  //       reader.onload = (e) => {
-  //         const dataUrl = e.target?.result as string;
-  //         setForm((s) => ({ ...s, image_url: dataUrl }));
-  //         resolve(dataUrl);
-  //       };
-  //       reader.readAsDataURL(file);
-  //     });
-  //   } catch (err) {
-  //     console.error("Image upload failed", err);
-  //     alert("Image upload failed");
-  //     return null;
-  //   } finally {
-  //     setUploading(false);
-  //   }
-  // };
 
   const uploadImage = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -341,7 +287,15 @@ export default function AdminMenuPage() {
   return (
     <div className="min-h-screen bg-background text-foreground p-4">
       <div className="container mx-auto max-w-7xl">
-        <h1 className="text-2xl font-bold mb-6">Admin — Menu</h1>
+        <div className="flex items-center justify-between">
+          <Button asChild>
+            <Link href="/admin" className="mb-6 inline-block">
+              ← Back to Dashboard
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold mb-6">Admin — Menu</h1>
+          <div></div>
+        </div>
 
         {/* Form Section */}
         <Card className="mb-6">

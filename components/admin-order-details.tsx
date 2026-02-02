@@ -24,11 +24,18 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { type AdminRole } from "@/lib/domain/auth";
+import {
+  ORDER_STATUS_LABEL,
+  ORDER_STATUS_BADGE_CLASS,
+  type OrderStatus,
+  getAllowedOrderStatusTransitions,
+} from "@/lib/domain/order";
 
 interface Order {
   id: string;
   user_id: string;
-  status: string;
+  status: OrderStatus;
   total_amount: number;
   delivery_address: string;
   delivery_city: string;
@@ -58,32 +65,18 @@ interface AdminOrderDetailsProps {
   order: Order;
   items: OrderItem[];
   customer: Customer | null;
+  role: AdminRole;
 }
-
-const statusColors = {
-  pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  confirmed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  preparing: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  out_for_delivery: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-  delivered: "bg-green-500/10 text-green-500 border-green-500/20",
-  cancelled: "bg-red-500/10 text-red-500 border-red-500/20",
-};
-
-const statusLabels = {
-  pending: "Pending",
-  confirmed: "Confirmed",
-  preparing: "Preparing",
-  out_for_delivery: "Out for Delivery",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-};
 
 export function AdminOrderDetails({
   order,
   items,
   customer,
+  role,
 }: AdminOrderDetailsProps) {
   const [status, setStatus] = useState(order.status);
+  const allowedStatuses = getAllowedOrderStatusTransitions(role, status);
+  const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
   const [isUpdating, setIsUpdating] = useState(false);
   const [deliveryUsers, setDeliveryUsers] = useState<
     Array<{ id: string; full_name: string }>
@@ -115,7 +108,7 @@ export function AdminOrderDetails({
       if (json?.order?.status) {
         setStatus(json.order.status);
       } else {
-        setStatus(newStatus);
+        setStatus(newStatus as OrderStatus);
       }
       router.refresh();
     } catch (error) {
@@ -186,13 +179,12 @@ export function AdminOrderDetails({
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
   const deliveryFee = 49;
   const tax = subtotal * 0.05;
 
   return (
-    
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button
@@ -211,11 +203,14 @@ export function AdminOrderDetails({
             Placed on {format(new Date(order.created_at), "PPpp")}
           </p>
         </div>
-        <Badge
+        {/* <Badge
           className={statusColors[status as keyof typeof statusColors]}
           variant="outline"
         >
           {statusLabels[status as keyof typeof statusLabels]}
+        </Badge> */}
+        <Badge className={ORDER_STATUS_BADGE_CLASS[status]} variant="outline">
+          {ORDER_STATUS_LABEL[status]}
         </Badge>
       </div>
 
@@ -225,7 +220,7 @@ export function AdminOrderDetails({
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <Select
+            {/* <Select
               value={status}
               onValueChange={handleStatusUpdate}
               disabled={isUpdating}
@@ -243,7 +238,28 @@ export function AdminOrderDetails({
                 <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
+            </Select> */}
+            <Select
+              value={status}
+              onValueChange={handleStatusUpdate}
+              disabled={isUpdating || !canUpdate}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                {(role === "ADMIN"
+                  ? allowedStatuses
+                  : [status, ...allowedStatuses.filter((s) => s !== status)]
+                ).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {ORDER_STATUS_LABEL[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
+
             {isUpdating && (
               <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
             )}

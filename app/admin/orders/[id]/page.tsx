@@ -3,17 +3,15 @@ import { Header } from "@/components/header";
 import { AdminOrderDetails } from "@/components/admin-order-details";
 import { BottomNav } from "@/components/bottom-nav";
 
-import { requireAuth } from "@/lib/auth/require-auth";
-import { normalizeOrder } from "@/lib/orders/normalize-order";
+import { requireStaff } from "@/lib/auth/require-auth";
+import { ADMIN_ROLES } from "@/lib/domain/auth";
 
 export default async function AdminOrderDetailPage({
   params,
 }: {
   params: { id: string } | Promise<{ id: string }>;
 }) {
-  const { supabase } = await requireAuth({
-    roles: ["ADMIN", "KITCHEN", "DELIVERY"],
-  });
+  const { supabase, role } = await requireStaff(ADMIN_ROLES);
 
   const { id } = (await params) as { id: string };
 
@@ -28,7 +26,7 @@ export default async function AdminOrderDetailPage({
   }
   // Normalize status server-side for consistency
 
-  const normalizedOrder = normalizeOrder(order);
+  // const normalizedOrder = normalizeOrder(order);
   /* ---------- PARALLEL FETCH ---------- */
   const [{ data: orderItems }, { data: customer }] = await Promise.all([
     supabase.from("order_items").select("*").eq("order_id", id),
@@ -43,6 +41,7 @@ export default async function AdminOrderDetailPage({
           order={order}
           items={orderItems || []}
           customer={customer}
+          role={role}
         />
       </main>
       <BottomNav />

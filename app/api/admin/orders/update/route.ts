@@ -314,13 +314,123 @@
 //   }
 // }
 
+// import { NextResponse } from "next/server";
+// import { requireAuth, requireStaff } from "@/lib/auth/require-auth";
+// import { ADMIN_ROLES } from "@/lib/domain/auth";
+
+// import {
+//   isValidStatus,
+//   canRoleSetStatus,
+// } from "@/lib/orders/order-permissions";
+
+// import { OrderStatus } from "@/lib/domain/order";
+
+// export async function POST(request: Request) {
+//   try {
+//     /* ---------- AUTH (STAFF ONLY) ---------- */
+//     const { supabase, role } = await requireStaff(ADMIN_ROLES);
+
+//     /* ---------- INPUT ---------- */
+//     const { orderId, status, deliveryFailureReason } = await request.json();
+
+//     if (!orderId || !status) {
+//       return NextResponse.json(
+//         { error: "Missing required fields" },
+//         { status: 400 },
+//       );
+//     }
+
+//     const rawStatus = String(status).toUpperCase();
+
+//     if (!isValidStatus(rawStatus)) {
+//       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+//     }
+
+//     const nextStatus: OrderStatus = rawStatus;
+
+//     if (!isValidStatus(nextStatus)) {
+//       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+//     }
+
+//     /* ---------- ROLE → STATUS ---------- */
+//     if (!canRoleSetStatus(role, nextStatus)) {
+//       return NextResponse.json(
+//         { error: "Role cannot set this status" },
+//         { status: 403 },
+//       );
+//     }
+
+//     if (nextStatus === "DELIVERY_FAILED" && !deliveryFailureReason) {
+//       return NextResponse.json(
+//         { error: "Delivery failure requires a reason" },
+//         { status: 400 },
+//       );
+//     }
+
+//     /* ---------- FETCH ORDER ---------- */
+//     const { data: currentOrder } = await supabase
+//       .from("orders")
+//       .select("id, status")
+//       .eq("id", orderId)
+//       .single();
+
+//     if (!currentOrder) {
+//       return NextResponse.json({ error: "Order not found" }, { status: 404 });
+//     }
+
+//     const fromStatus = currentOrder.status;
+
+//     /* ---------- TRANSITION (DB AUTHORITY) ---------- */
+//     const { error: rpcError } = await supabase.rpc("transition_order", {
+//       p_order_id: orderId,
+//       p_new_status: nextStatus,
+//     });
+
+//     if (rpcError) {
+//       console.error("transition_order failed:", rpcError);
+//       return NextResponse.json(
+//         { error: "Invalid order transition" },
+//         { status: 400 },
+//       );
+//     }
+
+//     /* ---------- SIDE EFFECTS ---------- */
+//     if (nextStatus === "DELIVERED") {
+//       await supabase
+//         .from("orders")
+//         .update({ payment_status: "paid" })
+//         .eq("id", orderId);
+//     }
+
+//     if (nextStatus === "DELIVERY_FAILED") {
+//       await supabase
+//         .from("orders")
+//         .update({ delivery_failure_reason: deliveryFailureReason })
+//         .eq("id", orderId);
+//     }
+
+//     /* ---------- RESPONSE ---------- */
+//     return NextResponse.json({
+//       message: "Order status updated successfully",
+//       from: fromStatus,
+//       to: nextStatus.toLowerCase(),
+//     });
+//   } catch (error) {
+//     console.error("Order status update error:", error);
+//     return NextResponse.json(
+//       { error: "Internal server error" },
+//       { status: 500 },
+//     );
+//   }
+// }
+
 import { NextResponse } from "next/server";
-import { requireAuth, requireStaff } from "@/lib/auth/require-auth";
+import { requireStaff } from "@/lib/auth/require-auth";
 import { ADMIN_ROLES } from "@/lib/domain/auth";
 
 import {
   isValidStatus,
-  canRoleSetStatus,
+  canRoleSetStatusFromCurrent,
 } from "@/lib/orders/order-permissions";
 
 import { OrderStatus } from "@/lib/domain/order";
@@ -336,7 +446,7 @@ export async function POST(request: Request) {
     if (!orderId || !status) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -348,37 +458,41 @@ export async function POST(request: Request) {
 
     const nextStatus: OrderStatus = rawStatus;
 
-    if (!isValidStatus(nextStatus)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    /* ---------- FETCH ORDER ---------- */
+    const { data: currentOrder, error: currentOrderError } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("id", orderId)
+      .single();
+
+    if (currentOrderError) {
+      console.error("Failed to fetch order:", currentOrderError);
+      return NextResponse.json(
+        { error: "Failed to fetch order" },
+        { status: 500 },
+      );
     }
 
-    /* ---------- ROLE → STATUS ---------- */
-    if (!canRoleSetStatus(role, nextStatus)) {
+    if (!currentOrder) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    const fromStatus = currentOrder.status as OrderStatus;
+
+    /* ---------- ROLE → STATUS (transition-based) ---------- */
+    if (!canRoleSetStatusFromCurrent(role, fromStatus, nextStatus)) {
       return NextResponse.json(
-        { error: "Role cannot set this status" },
-        { status: 403 }
+        { error: "Role cannot transition to this status" },
+        { status: 403 },
       );
     }
 
     if (nextStatus === "DELIVERY_FAILED" && !deliveryFailureReason) {
       return NextResponse.json(
         { error: "Delivery failure requires a reason" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-
-    /* ---------- FETCH ORDER ---------- */
-    const { data: currentOrder } = await supabase
-      .from("orders")
-      .select("id, status")
-      .eq("id", orderId)
-      .single();
-
-    if (!currentOrder) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
-
-    const fromStatus = currentOrder.status;
 
     /* ---------- TRANSITION (DB AUTHORITY) ---------- */
     const { error: rpcError } = await supabase.rpc("transition_order", {
@@ -390,7 +504,7 @@ export async function POST(request: Request) {
       console.error("transition_order failed:", rpcError);
       return NextResponse.json(
         { error: "Invalid order transition" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -410,16 +524,27 @@ export async function POST(request: Request) {
     }
 
     /* ---------- RESPONSE ---------- */
+    const { data: updatedOrder, error: updatedError } = await supabase
+      .from("orders")
+      .select("id, status, payment_status")
+      .eq("id", orderId)
+      .single();
+
+    if (updatedError) {
+      console.error("Failed to fetch updated order:", updatedError);
+    }
+
     return NextResponse.json({
       message: "Order status updated successfully",
       from: fromStatus,
-      to: nextStatus.toLowerCase(),
+      to: nextStatus,
+      order: updatedOrder ?? { id: orderId, status: nextStatus },
     });
   } catch (error) {
     console.error("Order status update error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

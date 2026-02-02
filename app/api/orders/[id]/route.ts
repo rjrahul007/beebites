@@ -40,11 +40,11 @@
 // }
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { normalizeOrder } from "@/lib/orders/normalize-order";
+// import { normalizeOrder } from "@/lib/orders/normalize-order";
 
 export async function GET(
   _request: Request,
-  context: { params: { id: string } | Promise<{ id: string }> }
+  context: { params: { id: string } | Promise<{ id: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -73,7 +73,7 @@ export async function GET(
             created_at,
             updated_at,
             delivery_failure_reason
-          `
+          `,
           )
           .eq("id", id)
           .single(),
@@ -87,7 +87,7 @@ export async function GET(
             item_name,
             quantity,
             price
-          `
+          `,
           )
           .eq("order_id", id),
       ]);
@@ -101,22 +101,22 @@ export async function GET(
       console.error("[order GET] items error:", itemsErr);
       return NextResponse.json(
         { error: "Failed to fetch order items" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     /* ---------- NORMALIZE ---------- */
-    const normalizedOrder = normalizeOrder(order);
+    // const normalizedOrder = normalizeOrder(order);
 
     return NextResponse.json({
-      order: normalizedOrder,
+      order: order,
       items: items ?? [],
     });
   } catch (err) {
     console.error("[order GET] error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

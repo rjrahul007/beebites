@@ -5,12 +5,12 @@ import { ADMIN_ROLES, USER_ROLE } from "@/lib/domain/auth";
 export async function POST(request: Request) {
   try {
     /* ---------- AUTH (ADMIN ONLY) ---------- */
-    const { supabase, user, role } = await requireStaff(ADMIN_ROLES);
+    const { supabase, user, role } = await requireStaff([USER_ROLE.ADMIN]);
 
     if (role !== USER_ROLE.ADMIN) {
       return NextResponse.json(
         { error: "Only admin can assign delivery" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     if (!orderId || !deliveryId) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     if (!deliveryProfile || deliveryProfile.role !== USER_ROLE.DELIVERY) {
       return NextResponse.json(
         { error: "Invalid delivery user" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,14 +52,14 @@ export async function POST(request: Request) {
         },
         {
           onConflict: "order_id",
-        }
+        },
       );
 
     if (upsertError) {
       console.error("Delivery assignment failed:", upsertError);
       return NextResponse.json(
         { error: "Failed to assign delivery" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     console.error("Assign delivery error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
