@@ -41,7 +41,7 @@ export default async function HomePage() {
       name,
       slug
     )
-  `
+  `,
     )
     .eq("is_available", true)
     .eq("category.is_active", true);
@@ -51,62 +51,11 @@ export default async function HomePage() {
   const normalizedMenuItems = (menuItems as any[]).map((it) => ({
     ...it,
     category: Array.isArray(it.category)
-      ? it.category[0] ?? null
-      : it.category ?? null,
+      ? (it.category[0] ?? null)
+      : (it.category ?? null),
   }));
 
   return (
-    // <div className="min-h-screen pb-20 md:pb-0">
-    //   <Header />
-    //   <HeroCarousel />
-    //   <main className="container mx-auto px-4 py-8" id="menu">
-    //     <div className="mb-8 flex justify-center">
-    //       <SearchBar />
-    //     </div>
-
-    //     <CategoryFilter categories={categories || []} />
-    //     <MenuGrid menuItems={normalizedMenuItems || []} />
-
-    //     <div className="my-8">
-    //       <SpecialOffers />
-    //     </div>
-
-    //     {user && (
-    //       <div className="mb-8">
-    //         <QuickReorder userId={user.id} />
-    //       </div>
-    //     )}
-    //   </main>
-    //   <BottomNav />
-    // </div>
-    // <div className="min-h-screen pb-20 md:pb-0">
-    //   <Header />
-    //   <HeroCarousel />
-
-    //   <div className="mb-8 container mx-auto px-4 pt-8">
-    //     <div className="flex justify-center">
-    //       <SearchBar />
-    //     </div>
-    //   </div>
-
-    //   {/* Sticky Category Filter - outside main container */}
-    //   <CategoryFilter categories={categories || []} />
-
-    //   <main className="container mx-auto px-4 py-8" id="menu">
-    //     <MenuGrid menuItems={normalizedMenuItems || []} />
-
-    //     <div className="my-8">
-    //       <SpecialOffers />
-    //     </div>
-
-    //     {user && (
-    //       <div className="mb-8">
-    //         <QuickReorder userId={user.id} />
-    //       </div>
-    //     )}
-    //   </main>
-    //   <BottomNav />
-    // </div>
     <div className="min-h-screen pb-20 md:pb-0">
       <Header />
       <HeroCarousel />

@@ -8,6 +8,7 @@ import {
   MapPinnedIcon,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -69,19 +70,35 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={"/privacy"}
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  About Us
-                </a>
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={"/terms"}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Terms & Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={"/contact"}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Contact
+                </Link>
               </li>
               <li>
                 <a
                   href="#"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Contact
+                  About Us
                 </a>
               </li>
               <li>

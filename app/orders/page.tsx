@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { OrdersList } from "@/components/orders-list";
 import { BottomNav } from "@/components/bottom-nav";
+import PageLayout from "@/components/page-layout";
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -27,13 +28,9 @@ export default async function OrdersPage() {
   }));
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Orders</h1>
-        <OrdersList orders={normalizedOrders} />
-      </main>
-      <BottomNav />
-    </div>
+    <PageLayout>
+      <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+      <OrdersList orders={normalizedOrders} />
+    </PageLayout>
   );
 }
