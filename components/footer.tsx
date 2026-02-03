@@ -62,14 +62,6 @@ export function Footer() {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Menu
-                </a>
-              </li>
-              <li>
                 <Link
                   href={"/privacy"}
                   className="text-muted-foreground hover:text-primary transition-colors"
@@ -85,6 +77,14 @@ export function Footer() {
                   Terms & Service
                 </Link>
               </li>
+              {/* <li>
+                <Link
+                  href={"/help"}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Help & Support
+                </Link>
+              </li> */}
               <li>
                 <Link
                   href={"/contact"}
@@ -94,20 +94,20 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={"/about"}
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  About Us
-                </a>
+                  About us
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={"/faq"}
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   FAQs
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
