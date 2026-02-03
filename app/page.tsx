@@ -57,7 +57,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
-      <Header />
+      {/* <Header /> */}
       <HeroCarousel />
       <main className="container mx-auto px-4 py-8" id="menu">
         <div className="mb-8 flex justify-center">

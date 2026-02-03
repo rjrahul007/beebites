@@ -6,6 +6,7 @@ import { PWAPrompt } from "@/components/pwa-prompt";
 import "./globals.css";
 import { cookies } from "next/headers";
 import { Toaster } from "sonner";
+import { Header } from "@/components/header";
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
@@ -53,8 +54,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`font-sans antialiased`}>
+        <Header />
         {children}
-        <PWAPrompt />
+        {/* <PWAPrompt /> */}
         <Analytics />
         <Toaster richColors position="top-right" />
       </body>

@@ -17,7 +17,7 @@ export default function PageLayout({
 }: PageLayoutProps) {
   return (
     <div className="min-h-screen pb-20 md:pb-0">
-      {showHeader && <Header />}
+      {/* {showHeader && <Header />} */}
       <main className={containerClassName}>{children}</main>
       {showBottomNav && <BottomNav />}
     </div>
