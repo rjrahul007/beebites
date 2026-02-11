@@ -1,64 +1,117 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useCart } from "@/hooks/use-cart"
-import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useCart } from "@/hooks/use-cart";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 interface Profile {
-  id: string
-  full_name: string
-  phone: string | null
-  address: string | null
-  city: string | null
-  pincode: string | null
+  id: string;
+  full_name: string;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  pincode: string | null;
 }
 
 interface CheckoutDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  profile: Profile | null
-  total: number
+  isOpen: boolean;
+  onClose: () => void;
+  profile: Profile | null;
+  total: number;
 }
 
-export function CheckoutDialog({ isOpen, onClose, profile, total }: CheckoutDialogProps) {
-  const [address, setAddress] = useState(profile?.address || "")
-  const [city, setCity] = useState(profile?.city || "")
-  const [pincode, setPincode] = useState(profile?.pincode || "")
-  const [phone, setPhone] = useState(profile?.phone || "")
-  const [paymentMethod, setPaymentMethod] = useState("cash")
-  const [specialInstructions, setSpecialInstructions] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function CheckoutDialog({
+  isOpen,
+  onClose,
+  profile,
+  total,
+}: CheckoutDialogProps) {
+  const [address, setAddress] = useState(profile?.address || "");
+  const [city, setCity] = useState(profile?.city || "");
+  const [pincode, setPincode] = useState(profile?.pincode || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [specialInstructions, setSpecialInstructions] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const { items, clearCart } = useCart()
-  const router = useRouter()
+  const { items, clearCart } = useCart();
+  const router = useRouter();
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError(null);
+
+  //   if (!address || !city || !pincode || !phone) {
+  //     setError("Please fill in all delivery details");
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await fetch("/api/orders/create", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         items,
+  //         total_amount: total,
+  //         delivery_address: address,
+  //         delivery_city: city,
+  //         delivery_pincode: pincode,
+  //         phone,
+  //         payment_method: paymentMethod,
+  //         special_instructions: specialInstructions,
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const data = await response.json();
+  //       throw new Error(data.error || "Failed to create order");
+  //     }
+
+  //     const data = await response.json();
+  //     clearCart();
+  //     router.push(`/orders/${data.orderId}`);
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "An error occurred");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     if (!address || !city || !pincode || !phone) {
-      setError("Please fill in all delivery details")
-      setIsLoading(false)
-      return
+      setError("Please fill in all delivery details");
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const response = await fetch("/api/orders/create", {
+      const response = await fetch("/api/payments/payu/initiate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items,
           total_amount: total,
@@ -66,32 +119,45 @@ export function CheckoutDialog({ isOpen, onClose, profile, total }: CheckoutDial
           delivery_city: city,
           delivery_pincode: pincode,
           phone,
-          payment_method: paymentMethod,
-          special_instructions: specialInstructions,
         }),
-      })
+      });
+
+      const data = await response.json();
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to create order")
+        throw new Error(data.error || "Payment init failed");
       }
 
-      const data = await response.json()
-      clearCart()
-      router.push(`/orders/${data.orderId}`)
+      // Auto submit form to PayU
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = data.url;
+
+      Object.keys(data.params).forEach((key) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = data.params[key];
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Checkout</DialogTitle>
-          <DialogDescription>Complete your order details to proceed</DialogDescription>
+          <DialogDescription>
+            Complete your order details to proceed
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
@@ -144,7 +210,7 @@ export function CheckoutDialog({ isOpen, onClose, profile, total }: CheckoutDial
             </div>
           </div>
 
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h3 className="text-lg font-semibold">Payment Method</h3>
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
               <div className="flex items-center space-x-2">
@@ -166,10 +232,12 @@ export function CheckoutDialog({ isOpen, onClose, profile, total }: CheckoutDial
                 </Label>
               </div>
             </RadioGroup>
-          </div>
+          </div> */}
 
           <div className="space-y-2">
-            <Label htmlFor="instructions">Special Instructions (Optional)</Label>
+            <Label htmlFor="instructions">
+              Special Instructions (Optional)
+            </Label>
             <Textarea
               id="instructions"
               value={specialInstructions}
@@ -179,14 +247,25 @@ export function CheckoutDialog({ isOpen, onClose, profile, total }: CheckoutDial
             />
           </div>
 
-          {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">{error}</div>}
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
           <div className="flex justify-between items-center pt-4 border-t">
             <div>
               <p className="text-sm text-muted-foreground">Total Amount</p>
-              <p className="text-2xl font-bold text-primary">₹{total.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-primary">
+                ₹{total.toFixed(2)}
+              </p>
             </div>
-            <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90" size="lg">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-primary hover:bg-primary/90"
+              size="lg"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -200,5 +279,5 @@ export function CheckoutDialog({ isOpen, onClose, profile, total }: CheckoutDial
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -8,6 +8,7 @@ export const ORDER_STATUS = {
   DELIVERED: "DELIVERED",
   DELIVERY_FAILED: "DELIVERY_FAILED",
   CANCELLED: "CANCELLED",
+  PAYMENT_FAILED: "PAYMENT_FAILED",
 } as const;
 
 export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
@@ -20,6 +21,7 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   DELIVERED: "Delivered",
   DELIVERY_FAILED: "Delivery Failed",
   CANCELLED: "Cancelled",
+  PAYMENT_FAILED: "Payment Failed",
 };
 
 export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
@@ -30,6 +32,7 @@ export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
   DELIVERED: "bg-green-500/10 text-green-500 border-green-500/20",
   DELIVERY_FAILED: "bg-red-500/10 text-red-600 border-red-500/20",
   CANCELLED: "bg-red-500/10 text-red-500 border-red-500/20",
+  PAYMENT_FAILED: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 
 // ✅ ordered list for dropdown rendering
@@ -41,6 +44,7 @@ export const ORDER_STATUS_LIST: OrderStatus[] = [
   ORDER_STATUS.DELIVERED,
   ORDER_STATUS.DELIVERY_FAILED,
   ORDER_STATUS.CANCELLED,
+  ORDER_STATUS.PAYMENT_FAILED,
 ];
 
 /**

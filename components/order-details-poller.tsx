@@ -12,10 +12,7 @@ export default function OrderDetailsPoller({
   initialItems: any[];
   orderId: string;
 }) {
-  const [order, setOrder] = useState(() => ({
-    ...(initialOrder || {}),
-    status: String(initialOrder?.status || "").toLowerCase(),
-  }));
+  const [order, setOrder] = useState(initialOrder || {});
   const [items, setItems] = useState(initialItems || []);
 
   useEffect(() => {
@@ -28,21 +25,15 @@ export default function OrderDetailsPoller({
         if (!res.ok) return;
         const json = await res.json();
         if (!mounted) return;
-        if (json.order)
-          setOrder({
-            ...(json.order || {}),
-            status: String(json.order.status || "").toLowerCase(),
-          });
+
+        if (json.order) setOrder(json.order);
         if (json.items) setItems(json.items);
-      } catch (err) {
-        // ignore transient errors
+      } catch {
+        // ignore
       }
     }
 
-    // initial tick
     fetchOnce();
-
-    // poll every 5s
     timer = window.setInterval(fetchOnce, 5000);
 
     return () => {

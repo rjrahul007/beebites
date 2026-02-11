@@ -53,7 +53,7 @@ export default function RootLayout({
   cookies(); // to make sure cookies are available in the client components
   return (
     <html lang="en" className="dark">
-      <body className={`font-sans antialiased`}>
+      <body className={`font-sans antialiased`} suppressHydrationWarning>
         <Header />
         {children}
         {/* <PWAPrompt /> */}

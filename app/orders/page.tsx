@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/header";
 import { OrdersList } from "@/components/orders-list";
-import { BottomNav } from "@/components/bottom-nav";
 import PageLayout from "@/components/page-layout";
+import { ORDER_STATUS } from "@/lib/domain/order";
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -19,18 +18,19 @@ export default async function OrdersPage() {
     .from("orders")
     .select("*")
     .eq("user_id", user.id)
+    .neq("status", ORDER_STATUS.PAYMENT_FAILED)
     .order("created_at", { ascending: false });
 
   // Normalize `status` to lowercase server-side before passing to UI
-  const normalizedOrders = (orders || []).map((o: any) => ({
-    ...o,
-    status: String(o.status || "").toLowerCase(),
-  }));
+  // const normalizedOrders = (orders || []).map((o: any) => ({
+  //   ...o,
+  //   status: String(o.status || "").toLowerCase(),
+  // }));
 
   return (
     <PageLayout>
       <h1 className="text-3xl font-bold mb-8">My Orders</h1>
-      <OrdersList orders={normalizedOrders} />
+      <OrdersList orders={orders || []} />
     </PageLayout>
   );
 }
