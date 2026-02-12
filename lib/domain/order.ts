@@ -24,15 +24,32 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   PAYMENT_FAILED: "Payment Failed",
 };
 
+// export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
+//   PENDING: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+//   CONFIRMED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+//   PREPARING: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+//   OUT_FOR_DELIVERY: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+//   DELIVERED: "bg-green-500/10 text-green-500 border-green-500/20",
+//   DELIVERY_FAILED: "bg-red-500/10 text-red-600 border-red-500/20",
+//   CANCELLED: "bg-red-500/10 text-red-500 border-red-500/20",
+//   PAYMENT_FAILED: "bg-red-500/10 text-red-500 border-red-500/20",
+// };
 export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
-  PENDING: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  CONFIRMED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  PREPARING: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  OUT_FOR_DELIVERY: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-  DELIVERED: "bg-green-500/10 text-green-500 border-green-500/20",
+  PENDING: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+
+  CONFIRMED: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+
+  PREPARING: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+
+  OUT_FOR_DELIVERY: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
+
+  DELIVERED: "bg-green-500/10 text-green-600 border-green-500/20",
+
   DELIVERY_FAILED: "bg-red-500/10 text-red-600 border-red-500/20",
-  CANCELLED: "bg-red-500/10 text-red-500 border-red-500/20",
-  PAYMENT_FAILED: "bg-red-500/10 text-red-500 border-red-500/20",
+
+  CANCELLED: "bg-gray-500/10 text-gray-600 border-gray-500/20",
+
+  PAYMENT_FAILED: "bg-rose-500/10 text-rose-600 border-rose-500/20",
 };
 
 // ✅ ordered list for dropdown rendering

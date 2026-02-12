@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   title: "BeeBites - Food Delivery",
   description:
     "Order delicious food late at night. Pizza, burgers, chicken, and more delivered to your door.",
-  generator: "v0.app",
-  manifest: "/manifest.json",
+  // generator: "v0.app",
+  // manifest: "/manifest.json",
 
   appleWebApp: {
     capable: true,
@@ -25,19 +25,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: "/images/logo/Bee_logo_black_transparent.png",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: "/images/logo/Bee_logo_black_transparent.png",
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/icon.svg",
+        url: "/images/logo/Bee_logo_black_transparent.png",
         type: "image/svg+xml",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: "/images/logo/Bee_logo_black_transparent.png",
   },
 };
 

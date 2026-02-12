@@ -119,7 +119,12 @@ import { Suspense } from "react";
 const PAGE_SIZE = 10;
 
 interface PageProps {
-  searchParams: Promise<{ from?: string; to?: string; page?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    page?: string;
+    q?: string;
+  }>;
 }
 
 export default async function AdminPage({ searchParams }: PageProps) {
@@ -129,10 +134,37 @@ export default async function AdminPage({ searchParams }: PageProps) {
   const currentPage = Math.max(1, parseInt(params.page ?? "1", 10));
   const fromDate = params.from ?? null;
   const toDate = params.to ?? null;
+  const searchQuery = params.q?.trim() ?? null;
 
   /* ---------------- BUILD DATE FILTER ---------------- */
   // toDate is inclusive so we extend it to end of day
   const toDateEnd = toDate ? `${toDate}T23:59:59.999Z` : null;
+
+  /* ---------------- RESOLVE SEARCH QUERY ---------------- */
+  // If query looks like a UUID / order-id prefix → filter by id.
+  // Otherwise treat it as a customer name → look up matching profile ids first.
+  let searchUserIds: string[] | null = null; // null = no name filter
+  let searchOrderId: string | null = null;
+
+  if (searchQuery) {
+    // Strict UUID check: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const looksLikeId =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        searchQuery,
+      );
+
+    if (looksLikeId) {
+      searchOrderId = searchQuery;
+    } else {
+      // Search profiles by full_name (case-insensitive)
+      const { data: matchedProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .ilike("full_name", `%${searchQuery}%`);
+
+      searchUserIds = (matchedProfiles ?? []).map((p: any) => p.id);
+    }
+  }
 
   /* ---------------- STATS (from view, date-filtered) ---------------- */
   // The view is a global aggregate — for date filtering we query directly
@@ -192,6 +224,18 @@ export default async function AdminPage({ searchParams }: PageProps) {
     ordersQuery = ordersQuery.gte("created_at", `${fromDate}T00:00:00.000Z`);
   if (toDateEnd) ordersQuery = ordersQuery.lte("created_at", toDateEnd);
 
+  // Apply search filters
+  if (searchOrderId) {
+    ordersQuery = ordersQuery.eq("id", searchOrderId);
+  } else if (searchUserIds !== null) {
+    if (searchUserIds.length === 0) {
+      // Name search returned no matches — force empty result
+      ordersQuery = ordersQuery.in("user_id", ["00000000-no-match"]);
+    } else {
+      ordersQuery = ordersQuery.in("user_id", searchUserIds);
+    }
+  }
+
   const {
     data: orders,
     error: ordersError,
@@ -234,6 +278,14 @@ export default async function AdminPage({ searchParams }: PageProps) {
   if (fromDate)
     exportQuery = exportQuery.gte("created_at", `${fromDate}T00:00:00.000Z`);
   if (toDateEnd) exportQuery = exportQuery.lte("created_at", toDateEnd);
+  if (searchOrderId) {
+    exportQuery = exportQuery.eq("id", searchOrderId);
+  } else if (searchUserIds !== null) {
+    exportQuery =
+      searchUserIds.length === 0
+        ? exportQuery.in("user_id", ["00000000-no-match"])
+        : exportQuery.in("user_id", searchUserIds);
+  }
   const { data: exportOrders } = await exportQuery;
 
   const exportOrdersWithCustomer = (exportOrders ?? []).map((o: any) => ({
