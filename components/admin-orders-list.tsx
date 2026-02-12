@@ -1,6 +1,6 @@
 // "use client";
 
-// import { useState } from "react";
+// import { useEffect, useState } from "react";
 // import { Card, CardContent, CardHeader } from "@/components/ui/card";
 // import { Badge } from "@/components/ui/badge";
 // import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@
 //   ORDER_STATUS_BADGE_CLASS,
 //   type OrderStatus,
 //   getAllowedOrderStatusTransitions,
+//   ORDER_STATUS,
 // } from "@/lib/domain/order";
 // import { toast } from "sonner";
 
@@ -44,7 +45,33 @@
 
 // export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
 //   const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set());
+//   const [assigningOrders, setAssigningOrders] = useState<Set<string>>(
+//     new Set(),
+//   );
+//   const [deliveryUsers, setDeliveryUsers] = useState<
+//     Array<{ id: string; full_name: string }>
+//   >([]);
+
 //   const router = useRouter();
+
+//   useEffect(() => {
+//     let mounted = true;
+
+//     (async () => {
+//       try {
+//         const res = await fetch("/api/admin/delivery/list");
+//         if (!res.ok) return;
+//         const json = await res.json();
+//         if (mounted) setDeliveryUsers(json.delivery || []);
+//       } catch (err) {
+//         console.error("failed to load delivery users", err);
+//       }
+//     })();
+
+//     return () => {
+//       mounted = false;
+//     };
+//   }, []);
 
 //   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
 //     setUpdatingOrders((prev) => new Set(prev).add(orderId));
@@ -52,28 +79,54 @@
 //     try {
 //       const response = await fetch("/api/admin/orders/update", {
 //         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           orderId,
-//           status: newStatus,
-//         }),
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ orderId, status: newStatus }),
 //       });
 
 //       if (!response.ok) {
-//         throw new Error("Failed to update order status");
+//         const json = await response.json().catch(() => null);
+//         throw new Error(json?.error || "Failed to update order status");
 //       }
-//       toast.success("Order status updated successfully");
 
+//       toast.success("Order status updated ✅");
 //       router.refresh();
 //     } catch (error) {
-//       console.error("[v0] Status update error:", error);
+//       console.error("Status update error:", error);
+//       toast.error(error instanceof Error ? error.message : "Update failed");
 //     } finally {
 //       setUpdatingOrders((prev) => {
-//         const newSet = new Set(prev);
-//         newSet.delete(orderId);
-//         return newSet;
+//         const next = new Set(prev);
+//         next.delete(orderId);
+//         return next;
+//       });
+//     }
+//   };
+
+//   const handleAssign = async (orderId: string, deliveryId: string) => {
+//     setAssigningOrders((prev) => new Set(prev).add(orderId));
+
+//     try {
+//       const res = await fetch("/api/admin/orders/assign", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ orderId, deliveryId }),
+//       });
+
+//       if (!res.ok) {
+//         const json = await res.json().catch(() => null);
+//         throw new Error(json?.error || "Assignment failed");
+//       }
+
+//       toast.success("Delivery assigned ✅");
+//       router.refresh();
+//     } catch (err) {
+//       console.error("assign error", err);
+//       toast.error(err instanceof Error ? err.message : "Failed to assign");
+//     } finally {
+//       setAssigningOrders((prev) => {
+//         const next = new Set(prev);
+//         next.delete(orderId);
+//         return next;
 //       });
 //     }
 //   };
@@ -89,18 +142,27 @@
 //   return (
 //     <div className="space-y-4">
 //       {orders.map((order) => {
-//         const allowedStatuses = getAllowedOrderStatusTransitions(
-//           role,
-//           order.status,
-//         );
+//         const status = String(order.status).toUpperCase() as OrderStatus;
+
+//         const allowedStatuses = getAllowedOrderStatusTransitions(role, status);
 //         const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
-//         const options =
+
+//         const statusOptions =
 //           role === "ADMIN"
 //             ? allowedStatuses
-//             : [
-//                 order.status,
-//                 ...allowedStatuses.filter((s) => s !== order.status),
-//               ];
+//             : [status, ...allowedStatuses.filter((s) => s !== status)];
+
+//         const assignments = Array.isArray(order.delivery_assignments)
+//           ? order.delivery_assignments
+//           : order.delivery_assignments
+//             ? [order.delivery_assignments]
+//             : [];
+
+//         const activeAssignment = assignments.find((a: any) => !a.cancelled);
+
+//         const assignedDeliveryId = activeAssignment?.delivery_id || "";
+//         const assignedDeliveryName =
+//           activeAssignment?.delivery_users?.full_name;
 
 //         return (
 //           <Card key={order.id}>
@@ -111,27 +173,31 @@
 //                     <h3 className="font-semibold">
 //                       Order #{order.id.slice(0, 8)}
 //                     </h3>
+
 //                     <Badge
 //                       className={
-//                         ORDER_STATUS_BADGE_CLASS[order.status] ??
+//                         ORDER_STATUS_BADGE_CLASS[status] ??
 //                         "bg-muted text-muted-foreground border-border"
 //                       }
 //                       variant="outline"
 //                     >
-//                       {ORDER_STATUS_LABEL[order.status] ?? order.status}
+//                       {ORDER_STATUS_LABEL[status] ?? status}
 //                     </Badge>
 //                   </div>
+
 //                   <p className="text-sm text-muted-foreground">
 //                     {formatDistanceToNow(new Date(order.created_at), {
 //                       addSuffix: true,
 //                     })}
 //                   </p>
 //                 </div>
+
 //                 <p className="text-xl font-bold text-primary">
 //                   ₹{Number(order.total_amount).toFixed(2)}
 //                 </p>
 //               </div>
 //             </CardHeader>
+
 //             <CardContent>
 //               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
 //                 <div>
@@ -148,7 +214,6 @@
 //                     {order.payment_method}
 //                   </p>
 //                 </div>
-
 //                 <div>
 //                   <p className="text-sm text-muted-foreground">Customer Name</p>
 //                   <p className="font-medium text-xs">
@@ -161,30 +226,22 @@
 //                     {order.user_id.slice(0, 8)}
 //                   </p>
 //                 </div>
+//                 {assignedDeliveryName && (
+//                   <div>
+//                     <p className="text-sm text-muted-foreground mt-1">
+//                       Assigned to:
+//                     </p>
+//                     <p className="font-medium text-xs">
+//                       {assignedDeliveryName}
+//                     </p>
+//                   </div>
+//                 )}
 //               </div>
-//               <div className="flex items-center gap-2 pt-4 border-t">
-//                 {/* <Select
-//                   value={order.status}
-//                   onValueChange={(value) => handleStatusUpdate(order.id, value)}
-//                   disabled={
-//                     role !== "ADMIN" &&
-//                     (!canUpdate || updatingOrders.has(order.id))
-//                   }
-//                 >
-//                   <SelectTrigger className="w-45">
-//                     <SelectValue />
-//                   </SelectTrigger>
-//                   <SelectContent>
-//                     {allowedStatuses.map((status) => (
-//                       <SelectItem key={status} value={status}>
-//                         {statusLabels[status as keyof typeof statusLabels] ??
-//                           status}
-//                       </SelectItem>
-//                     ))}
-//                   </SelectContent>
-//                 </Select> */}
+
+//               <div className="flex flex-wrap items-center gap-2 pt-4 border-t">
+//                 {/* Status Update */}
 //                 <Select
-//                   value={order.status}
+//                   value={status}
 //                   onValueChange={(value) => handleStatusUpdate(order.id, value)}
 //                   disabled={updatingOrders.has(order.id) || !canUpdate}
 //                 >
@@ -192,9 +249,9 @@
 //                     <SelectValue />
 //                   </SelectTrigger>
 //                   <SelectContent>
-//                     {options.map((status) => (
-//                       <SelectItem key={status} value={status}>
-//                         {ORDER_STATUS_LABEL[status]}
+//                     {statusOptions.map((s) => (
+//                       <SelectItem key={s} value={s}>
+//                         {ORDER_STATUS_LABEL[s] ?? s}
 //                       </SelectItem>
 //                     ))}
 //                   </SelectContent>
@@ -203,6 +260,35 @@
 //                 {updatingOrders.has(order.id) && (
 //                   <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
 //                 )}
+
+//                 {/* Assign Delivery (only useful when OUT_FOR_DELIVERY etc) */}
+//                 {status === ORDER_STATUS.OUT_FOR_DELIVERY && (
+//                   <Select
+//                     value={assignedDeliveryId}
+//                     onValueChange={(deliveryId) => {
+//                       if (deliveryId) handleAssign(order.id, deliveryId);
+//                     }}
+//                     disabled={assigningOrders.has(order.id)}
+//                   >
+//                     <SelectTrigger className="w-[200px]">
+//                       <SelectValue
+//                         placeholder={
+//                           deliveryUsers.length
+//                             ? "Assign delivery..."
+//                             : "No delivery users"
+//                         }
+//                       />
+//                     </SelectTrigger>
+//                     <SelectContent>
+//                       {deliveryUsers.map((d) => (
+//                         <SelectItem key={d.id} value={d.id}>
+//                           {d.full_name}
+//                         </SelectItem>
+//                       ))}
+//                     </SelectContent>
+//                   </Select>
+//                 )}
+
 //                 <Button
 //                   variant="outline"
 //                   size="sm"
@@ -239,7 +325,6 @@ import {
 import { Eye, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { useRouter } from "next/navigation";
 import { type AdminRole } from "@/lib/domain/auth";
 import {
   ORDER_STATUS_LABEL,
@@ -248,7 +333,9 @@ import {
   getAllowedOrderStatusTransitions,
   ORDER_STATUS,
 } from "@/lib/domain/order";
-import { toast } from "sonner";
+
+import { useAdminOrderActions } from "@/hooks/use-admin-order-actions";
+import { TERMINAL_ORDER_STATUSES } from "@/lib/domain/order";
 
 interface Order {
   id: string;
@@ -269,16 +356,13 @@ interface AdminOrdersListProps {
 }
 
 export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
-  const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set());
-  const [assigningOrders, setAssigningOrders] = useState<Set<string>>(
-    new Set(),
-  );
+  const { updateStatus, assignDelivery, loadingIds } = useAdminOrderActions();
+
   const [deliveryUsers, setDeliveryUsers] = useState<
     Array<{ id: string; full_name: string }>
   >([]);
 
-  const router = useRouter();
-
+  /* ---------------- Load delivery users ---------------- */
   useEffect(() => {
     let mounted = true;
 
@@ -298,64 +382,6 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
     };
   }, []);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
-    setUpdatingOrders((prev) => new Set(prev).add(orderId));
-
-    try {
-      const response = await fetch("/api/admin/orders/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, status: newStatus }),
-      });
-
-      if (!response.ok) {
-        const json = await response.json().catch(() => null);
-        throw new Error(json?.error || "Failed to update order status");
-      }
-
-      toast.success("Order status updated ✅");
-      router.refresh();
-    } catch (error) {
-      console.error("Status update error:", error);
-      toast.error(error instanceof Error ? error.message : "Update failed");
-    } finally {
-      setUpdatingOrders((prev) => {
-        const next = new Set(prev);
-        next.delete(orderId);
-        return next;
-      });
-    }
-  };
-
-  const handleAssign = async (orderId: string, deliveryId: string) => {
-    setAssigningOrders((prev) => new Set(prev).add(orderId));
-
-    try {
-      const res = await fetch("/api/admin/orders/assign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, deliveryId }),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        throw new Error(json?.error || "Assignment failed");
-      }
-
-      toast.success("Delivery assigned ✅");
-      router.refresh();
-    } catch (err) {
-      console.error("assign error", err);
-      toast.error(err instanceof Error ? err.message : "Failed to assign");
-    } finally {
-      setAssigningOrders((prev) => {
-        const next = new Set(prev);
-        next.delete(orderId);
-        return next;
-      });
-    }
-  };
-
   if (orders.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -369,6 +395,8 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
       {orders.map((order) => {
         const status = String(order.status).toUpperCase() as OrderStatus;
 
+        const isTerminal = TERMINAL_ORDER_STATUSES.includes(status);
+
         const allowedStatuses = getAllowedOrderStatusTransitions(role, status);
         const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
 
@@ -376,6 +404,16 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
           role === "ADMIN"
             ? allowedStatuses
             : [status, ...allowedStatuses.filter((s) => s !== status)];
+
+        const assignments = Array.isArray(order.delivery_assignments)
+          ? order.delivery_assignments
+          : order.delivery_assignments
+            ? [order.delivery_assignments]
+            : [];
+
+        const activeAssignment = assignments.find((a: any) => !a.cancelled);
+        const assignedDeliveryName =
+          activeAssignment?.delivery_users?.full_name;
 
         return (
           <Card key={order.id}>
@@ -412,45 +450,64 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
             </CardHeader>
 
             <CardContent>
+              {/* ---------------- Meta ---------------- */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Delivery to</p>
                   <p className="font-medium">{order.delivery_address}</p>
                 </div>
+
                 <div>
                   <p className="text-sm text-muted-foreground">Phone</p>
                   <p className="font-medium">{order.phone}</p>
                 </div>
+
                 <div>
                   <p className="text-sm text-muted-foreground">Payment</p>
                   <p className="font-medium capitalize">
                     {order.payment_method}
                   </p>
                 </div>
+
                 <div>
                   <p className="text-sm text-muted-foreground">Customer Name</p>
                   <p className="font-medium text-xs">
                     {order.customer_full_name || "—"}
                   </p>
                 </div>
+
                 <div>
                   <p className="text-sm text-muted-foreground">User ID</p>
                   <p className="font-medium text-xs">
                     {order.user_id.slice(0, 8)}
                   </p>
                 </div>
+                {assignedDeliveryName && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Assigned to:
+                    </p>
+                    <p className="font-medium text-xs">
+                      {assignedDeliveryName}
+                    </p>
+                  </div>
+                )}
               </div>
 
+              {/* ---------------- Actions Row ---------------- */}
               <div className="flex flex-wrap items-center gap-2 pt-4 border-t">
                 {/* Status Update */}
                 <Select
                   value={status}
-                  onValueChange={(value) => handleStatusUpdate(order.id, value)}
-                  disabled={updatingOrders.has(order.id) || !canUpdate}
+                  onValueChange={(value) => updateStatus(order.id, value)}
+                  disabled={
+                    isTerminal || loadingIds.has(order.id) || !canUpdate
+                  }
                 >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
+
                   <SelectContent>
                     {statusOptions.map((s) => (
                       <SelectItem key={s} value={s}>
@@ -460,18 +517,18 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
                   </SelectContent>
                 </Select>
 
-                {updatingOrders.has(order.id) && (
+                {loadingIds.has(order.id) && (
                   <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
 
-                {/* Assign Delivery (only useful when OUT_FOR_DELIVERY etc) */}
-                {status === ORDER_STATUS.OUT_FOR_DELIVERY && (
+                {/* Assign Delivery */}
+                {!isTerminal && status === ORDER_STATUS.OUT_FOR_DELIVERY && (
                   <Select
-                    value=""
+                    value={order.delivery_assignments?.delivery_id || ""}
                     onValueChange={(deliveryId) => {
-                      if (deliveryId) handleAssign(order.id, deliveryId);
+                      if (deliveryId) assignDelivery(order.id, deliveryId);
                     }}
-                    disabled={assigningOrders.has(order.id)}
+                    disabled={loadingIds.has(order.id)}
                   >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue
@@ -482,6 +539,7 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
                         }
                       />
                     </SelectTrigger>
+
                     <SelectContent>
                       {deliveryUsers.map((d) => (
                         <SelectItem key={d.id} value={d.id}>
@@ -492,6 +550,7 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
                   </Select>
                 )}
 
+                {/* View */}
                 <Button
                   variant="outline"
                   size="sm"

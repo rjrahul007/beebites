@@ -47,6 +47,12 @@ export const ORDER_STATUS_LIST: OrderStatus[] = [
   ORDER_STATUS.PAYMENT_FAILED,
 ];
 
+export const TERMINAL_ORDER_STATUSES: OrderStatus[] = [
+  ORDER_STATUS.DELIVERED,
+  ORDER_STATUS.DELIVERY_FAILED,
+  ORDER_STATUS.CANCELLED,
+  ORDER_STATUS.PAYMENT_FAILED,
+];
 /**
  * Role-based transitions
  * - ADMIN can set anything

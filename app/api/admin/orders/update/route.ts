@@ -433,7 +433,7 @@ import {
   canRoleSetStatusFromCurrent,
 } from "@/lib/orders/order-permissions";
 
-import { OrderStatus } from "@/lib/domain/order";
+import { ORDER_STATUS, OrderStatus } from "@/lib/domain/order";
 
 export async function POST(request: Request) {
   try {
@@ -441,7 +441,8 @@ export async function POST(request: Request) {
     const { supabase, role } = await requireStaff(ADMIN_ROLES);
 
     /* ---------- INPUT ---------- */
-    const { orderId, status, deliveryFailureReason } = await request.json();
+    const { orderId, status, deliveryFailureReason, cancelReason } =
+      await request.json();
 
     if (!orderId || !status) {
       return NextResponse.json(
@@ -509,17 +510,26 @@ export async function POST(request: Request) {
     }
 
     /* ---------- SIDE EFFECTS ---------- */
-    if (nextStatus === "DELIVERED") {
-      await supabase
-        .from("orders")
-        .update({ payment_status: "paid" })
-        .eq("id", orderId);
-    }
+    // if (nextStatus === "DELIVERED") {
+    //   await supabase
+    //     .from("orders")
+    //     .update({ payment_status: "paid" })
+    //     .eq("id", orderId);
+    // }
 
-    if (nextStatus === "DELIVERY_FAILED") {
+    if (nextStatus === ORDER_STATUS.DELIVERY_FAILED) {
       await supabase
         .from("orders")
         .update({ delivery_failure_reason: deliveryFailureReason })
+        .eq("id", orderId);
+    }
+
+    if (nextStatus === ORDER_STATUS.CANCELLED) {
+      await supabase
+        .from("orders")
+        .update({
+          delivery_failure_reason: cancelReason || "Cancelled by admin",
+        })
         .eq("id", orderId);
     }
 

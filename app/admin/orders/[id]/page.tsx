@@ -1,10 +1,9 @@
 import { redirect, notFound } from "next/navigation";
-import { Header } from "@/components/header";
 import { AdminOrderDetails } from "@/components/admin-order-details";
-import { BottomNav } from "@/components/bottom-nav";
 
 import { requireStaff } from "@/lib/auth/require-auth";
 import { ADMIN_ROLES } from "@/lib/domain/auth";
+import PageLayout from "@/components/page-layout";
 
 export default async function AdminOrderDetailPage({
   params,
@@ -15,9 +14,27 @@ export default async function AdminOrderDetailPage({
 
   const { id } = (await params) as { id: string };
 
+  // const { data: order } = await supabase
+  //   .from("orders")
+  //   .select("*")
+  //   .eq("id", id)
+  //   .single();
   const { data: order } = await supabase
     .from("orders")
-    .select("*")
+    .select(
+      `
+    *,
+    delivery_assignments (
+      id,
+      delivery_id,
+      cancelled,
+      delivery_users:delivery_id (
+        id,
+        full_name
+      )
+    )
+  `,
+    )
     .eq("id", id)
     .single();
 
@@ -34,17 +51,13 @@ export default async function AdminOrderDetailPage({
   ]);
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <AdminOrderDetails
-          order={order}
-          items={orderItems || []}
-          customer={customer}
-          role={role}
-        />
-      </main>
-      <BottomNav />
-    </div>
+    <PageLayout>
+      <AdminOrderDetails
+        order={order}
+        items={orderItems || []}
+        customer={customer}
+        role={role}
+      />
+    </PageLayout>
   );
 }

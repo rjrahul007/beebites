@@ -7,15 +7,41 @@ import { requireAuth, requireStaff } from "@/lib/auth/require-auth";
 import { ADMIN_ROLES } from "@/lib/domain/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import PageLayout from "@/components/page-layout";
 
 export default async function AdminPage() {
   const { supabase, user, role } = await requireStaff(ADMIN_ROLES);
 
   /* ---------- ORDERS ---------- */
+  // const { data: orders, error: ordersError } = await supabase
+  //   .from("orders")
+  //   .select(
+  //     "id, status, total_amount, created_at, user_id, delivery_address, payment_method, phone, payment_status",
+  //   )
+  //   .order("created_at", { ascending: false });
   const { data: orders, error: ordersError } = await supabase
     .from("orders")
     .select(
-      "id, status, total_amount, created_at, user_id, delivery_address, payment_method, phone, payment_status",
+      `
+    id,
+    status,
+    total_amount,
+    created_at,
+    user_id,
+    delivery_address,
+    payment_method,
+    phone,
+    payment_status,
+    delivery_assignments (
+      id,
+      delivery_id,
+      cancelled,
+      delivery_users:delivery_id (
+        id,
+        full_name
+      )
+    )
+  `,
     )
     .order("created_at", { ascending: false });
 
@@ -57,29 +83,25 @@ export default async function AdminPage() {
   }));
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-          <Button asChild>
-            <Link href="/admin/menu" className="block mb-6">
-              Edit Menu
-            </Link>
-          </Button>
-        </div>
-        <AdminStats
-          totalOrders={totalOrders}
-          pendingOrders={pendingOrders}
-          activeOrders={activeOrders}
-          totalRevenue={totalRevenue}
-        />
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Recent Orders</h2>
-          <AdminOrdersList orders={ordersWithCustomer} role={role} />
-        </div>
-      </main>
-      <BottomNav />
-    </div>
+    <PageLayout>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        <Button asChild>
+          <Link href="/admin/menu" className="block mb-6">
+            Edit Menu
+          </Link>
+        </Button>
+      </div>
+      <AdminStats
+        totalOrders={totalOrders}
+        pendingOrders={pendingOrders}
+        activeOrders={activeOrders}
+        totalRevenue={totalRevenue}
+      />
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Recent Orders</h2>
+        <AdminOrdersList orders={ordersWithCustomer} role={role} />
+      </div>
+    </PageLayout>
   );
 }

@@ -45,5 +45,11 @@ export function canRoleSetStatusFromCurrent(
   next: OrderStatus,
 ): boolean {
   if (role === "ADMIN") return true;
+  if (
+    next === ORDER_STATUS.CANCELLED &&
+    (current === ORDER_STATUS.PENDING || current === ORDER_STATUS.CONFIRMED)
+  ) {
+    return true;
+  }
   return getAllowedOrderStatusTransitions(role, current).includes(next);
 }

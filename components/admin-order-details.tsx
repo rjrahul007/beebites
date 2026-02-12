@@ -20,6 +20,7 @@ import {
   User,
   RefreshCw,
   ArrowLeft,
+  Truck,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -30,7 +31,10 @@ import {
   ORDER_STATUS_BADGE_CLASS,
   type OrderStatus,
   getAllowedOrderStatusTransitions,
+  ORDER_STATUS,
+  TERMINAL_ORDER_STATUSES,
 } from "@/lib/domain/order";
+import { useAdminOrderActions } from "@/hooks/use-admin-order-actions";
 
 interface Order {
   id: string;
@@ -76,48 +80,18 @@ export function AdminOrderDetails({
 }: AdminOrderDetailsProps) {
   const [status, setStatus] = useState(order.status);
   const allowedStatuses = getAllowedOrderStatusTransitions(role, status);
-  const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
+  const { updateStatus, assignDelivery, loadingIds } = useAdminOrderActions();
+  const isTerminal = TERMINAL_ORDER_STATUSES.includes(status);
+  // const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
+  const canUpdate =
+    !isTerminal && (role === "ADMIN" || allowedStatuses.length > 0);
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [deliveryUsers, setDeliveryUsers] = useState<
     Array<{ id: string; full_name: string }>
   >([]);
   const [assigning, setAssigning] = useState(false);
   const router = useRouter();
-
-  const handleStatusUpdate = async (newStatus: string) => {
-    setIsUpdating(true);
-
-    try {
-      const response = await fetch("/api/admin/orders/update", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId: order.id,
-          status: newStatus,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update order status");
-      }
-
-      const json = await response.json();
-      // Use DB-returned order status when available (ensures transition actually applied)
-      if (json?.order?.status) {
-        setStatus(json.order.status);
-      } else {
-        setStatus(newStatus as OrderStatus);
-      }
-      router.refresh();
-    } catch (error) {
-      console.error("[v0] Status update error:", error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   useEffect(() => {
     let mounted = true;
     (async function loadDeliveryUsers() {
@@ -135,23 +109,6 @@ export function AdminOrderDetails({
     };
   }, []);
 
-  const handleAssign = async (deliveryId: string) => {
-    setAssigning(true);
-    try {
-      const res = await fetch("/api/admin/orders/assign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: order.id, deliveryId }),
-      });
-      if (!res.ok) throw new Error("Assignment failed");
-      router.refresh();
-    } catch (err) {
-      console.error("[v0] assign error", err);
-    } finally {
-      setAssigning(false);
-    }
-  };
-
   const handleCancelWithReason = async () => {
     const reason = window.prompt("Enter cancellation reason:");
     if (!reason) return;
@@ -162,11 +119,12 @@ export function AdminOrderDetails({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId: order.id,
-          status: "cancelled",
+          status: ORDER_STATUS.CANCELLED,
           cancelReason: reason,
         }),
       });
       if (!res.ok) throw new Error("Cancel failed");
+
       const json = await res.json();
       if (json?.order?.status) setStatus(json.order.status);
       router.refresh();
@@ -183,6 +141,16 @@ export function AdminOrderDetails({
   );
   const deliveryFee = 49;
   const tax = subtotal * 0.05;
+  const assignments = Array.isArray(order.delivery_assignments)
+    ? order.delivery_assignments
+    : order.delivery_assignments
+      ? [order.delivery_assignments]
+      : [];
+
+  const activeAssignment = assignments.find((a: any) => !a.cancelled);
+
+  const assignedDeliveryId = activeAssignment?.delivery_id || "";
+  const assignedDeliveryName = activeAssignment?.delivery_users?.full_name;
 
   return (
     <div className="space-y-6">
@@ -203,12 +171,7 @@ export function AdminOrderDetails({
             Placed on {format(new Date(order.created_at), "PPpp")}
           </p>
         </div>
-        {/* <Badge
-          className={statusColors[status as keyof typeof statusColors]}
-          variant="outline"
-        >
-          {statusLabels[status as keyof typeof statusLabels]}
-        </Badge> */}
+
         <Badge className={ORDER_STATUS_BADGE_CLASS[status]} variant="outline">
           {ORDER_STATUS_LABEL[status]}
         </Badge>
@@ -220,28 +183,9 @@ export function AdminOrderDetails({
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            {/* <Select
-              value={status}
-              onValueChange={handleStatusUpdate}
-              disabled={isUpdating}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="preparing">Preparing</SelectItem>
-                <SelectItem value="out_for_delivery">
-                  Out for Delivery
-                </SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select> */}
             <Select
               value={status}
-              onValueChange={handleStatusUpdate}
+              onValueChange={(value) => updateStatus(order.id, value)}
               disabled={isUpdating || !canUpdate}
             >
               <SelectTrigger className="w-[200px]">
@@ -267,57 +211,69 @@ export function AdminOrderDetails({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Assign Delivery</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2">
-            <Select
-              value=""
-              onValueChange={(value) => {
-                if (value) handleAssign(value);
-              }}
-              disabled={assigning}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue
-                  placeholder={
-                    deliveryUsers.length ? "Assign to..." : "No delivery users"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {deliveryUsers.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" size="sm" onClick={() => router.refresh()}>
-              Refresh
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* assign delivery */}
+      {!isTerminal && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Assign Delivery</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Select
+                value={assignedDeliveryId}
+                onValueChange={(value) => {
+                  if (value) assignDelivery(order.id, value);
+                }}
+                disabled={assigning}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue
+                    placeholder={
+                      deliveryUsers.length
+                        ? "Assign to..."
+                        : "No delivery users"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {deliveryUsers.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.refresh()}
+              >
+                Refresh
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="destructive"
-              onClick={handleCancelWithReason}
-              disabled={isUpdating}
-            >
-              Cancel Order (require reason)
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* actions */}
+      {!isTerminal && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="destructive"
+                onClick={handleCancelWithReason}
+                disabled={isUpdating}
+              >
+                Cancel Order (require reason)
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -400,6 +356,22 @@ export function AdminOrderDetails({
                   </p>
                 </div>
               </div>
+              {assignedDeliveryName && (
+                <>
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <Truck className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Assigned to:
+                      </p>
+                      <p className="font-medium text-xs">
+                        {assignedDeliveryName}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
               {order.special_instructions && (
                 <>
                   <Separator />
