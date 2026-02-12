@@ -393,7 +393,7 @@ export function AdminOrdersList({ orders, role }: AdminOrdersListProps) {
   return (
     <div className="space-y-4">
       {orders.map((order) => {
-        const status = String(order.status).toUpperCase() as OrderStatus;
+        const status = order.status;
 
         const isTerminal = TERMINAL_ORDER_STATUSES.includes(status);
 
