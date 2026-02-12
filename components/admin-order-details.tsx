@@ -80,17 +80,18 @@ export function AdminOrderDetails({
 }: AdminOrderDetailsProps) {
   const [status, setStatus] = useState(order.status);
   const allowedStatuses = getAllowedOrderStatusTransitions(role, status);
-  const { updateStatus, assignDelivery, loadingIds } = useAdminOrderActions();
+  const { updateStatus, assignDelivery, loadingIds, cancelOrder } =
+    useAdminOrderActions();
   const isTerminal = TERMINAL_ORDER_STATUSES.includes(status);
   // const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
   const canUpdate =
     !isTerminal && (role === "ADMIN" || allowedStatuses.length > 0);
 
-  const [isUpdating, setIsUpdating] = useState(false);
+  // const [isUpdating, setIsUpdating] = useState(false);
   const [deliveryUsers, setDeliveryUsers] = useState<
     Array<{ id: string; full_name: string }>
   >([]);
-  const [assigning, setAssigning] = useState(false);
+  // const [assigning, setAssigning] = useState(false);
   const router = useRouter();
   useEffect(() => {
     let mounted = true;
@@ -109,30 +110,36 @@ export function AdminOrderDetails({
     };
   }, []);
 
+  // const handleCancelWithReason = async () => {
+  //   const reason = window.prompt("Enter cancellation reason:");
+  //   if (!reason) return;
+  //   setIsUpdating(true);
+  //   try {
+  //     const res = await fetch("/api/admin/orders/update", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         orderId: order.id,
+  //         status: ORDER_STATUS.CANCELLED,
+  //         cancelReason: reason,
+  //       }),
+  //     });
+  //     if (!res.ok) throw new Error("Cancel failed");
+
+  //     const json = await res.json();
+  //     if (json?.order?.status) setStatus(json.order.status);
+  //     router.refresh();
+  //   } catch (err) {
+  //     console.error("[v0] cancel error", err);
+  //   } finally {
+  //     setIsUpdating(false);
+  //   }
+  // };
   const handleCancelWithReason = async () => {
     const reason = window.prompt("Enter cancellation reason:");
     if (!reason) return;
-    setIsUpdating(true);
-    try {
-      const res = await fetch("/api/admin/orders/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: order.id,
-          status: ORDER_STATUS.CANCELLED,
-          cancelReason: reason,
-        }),
-      });
-      if (!res.ok) throw new Error("Cancel failed");
 
-      const json = await res.json();
-      if (json?.order?.status) setStatus(json.order.status);
-      router.refresh();
-    } catch (err) {
-      console.error("[v0] cancel error", err);
-    } finally {
-      setIsUpdating(false);
-    }
+    await cancelOrder(order.id, reason);
   };
 
   const subtotal = items.reduce(
@@ -185,8 +192,11 @@ export function AdminOrderDetails({
           <div className="flex items-center gap-4">
             <Select
               value={status}
-              onValueChange={(value) => updateStatus(order.id, value)}
-              disabled={isUpdating || !canUpdate}
+              onValueChange={(value) => {
+                setStatus(value as OrderStatus);
+                updateStatus(order.id, value);
+              }}
+              disabled={!canUpdate || loadingIds.has(order.id)}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
@@ -204,7 +214,7 @@ export function AdminOrderDetails({
               </SelectContent>
             </Select>
 
-            {isUpdating && (
+            {loadingIds.has(order.id) && (
               <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
           </div>
@@ -224,7 +234,7 @@ export function AdminOrderDetails({
                 onValueChange={(value) => {
                   if (value) assignDelivery(order.id, value);
                 }}
-                disabled={assigning}
+                disabled={loadingIds.has(order.id)}
               >
                 <SelectTrigger className="w-[200px]">
                   <SelectValue
@@ -266,7 +276,7 @@ export function AdminOrderDetails({
               <Button
                 variant="destructive"
                 onClick={handleCancelWithReason}
-                disabled={isUpdating}
+                disabled={!canUpdate || loadingIds.has(order.id)}
               >
                 Cancel Order (require reason)
               </Button>
