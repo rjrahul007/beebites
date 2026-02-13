@@ -47,7 +47,7 @@ export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
 
   DELIVERY_FAILED: "bg-red-500/10 text-red-600 border-red-500/20",
 
-  CANCELLED: "bg-gray-500/10 text-gray-600 border-gray-500/20",
+  CANCELLED: "bg-red-500/10 text-red-600 border-red-500/20",
 
   PAYMENT_FAILED: "bg-rose-500/10 text-rose-600 border-rose-500/20",
 };
@@ -60,8 +60,7 @@ export const ORDER_STATUS_LIST: OrderStatus[] = [
   ORDER_STATUS.OUT_FOR_DELIVERY,
   ORDER_STATUS.DELIVERED,
   ORDER_STATUS.DELIVERY_FAILED,
-  ORDER_STATUS.CANCELLED,
-  ORDER_STATUS.PAYMENT_FAILED,
+  // ORDER_STATUS.CANCELLED,
 ];
 
 export const TERMINAL_ORDER_STATUSES: OrderStatus[] = [

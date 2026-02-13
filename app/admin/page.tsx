@@ -210,6 +210,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
       `
       id, status, total_amount, created_at, user_id,
       delivery_address, payment_method, phone, payment_status,
+      delivery_failure_reason,
       delivery_assignments (
         id, delivery_id, cancelled,
         delivery_users:delivery_id ( id, full_name )

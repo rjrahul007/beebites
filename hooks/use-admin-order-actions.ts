@@ -97,7 +97,11 @@ export function useAdminOrderActions() {
   /* -------------------- UPDATE STATUS -------------------- */
   const updateStatus = async (orderId: string, status: string) => {
     setLoading(orderId, true);
-
+    // if (status === ORDER_STATUS.CANCELLED) {
+    //   toast.error("Use cancel optiont with reason for better tracking");
+    //   setLoading(orderId, false);
+    //   return;
+    // }
     try {
       const res = await fetch("/api/admin/orders/update", {
         method: "POST",

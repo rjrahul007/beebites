@@ -488,6 +488,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (status === ORDER_STATUS.CANCELLED && !cancelReason) {
+      return NextResponse.json(
+        { error: "Cancel reason is required" },
+        { status: 400 },
+      );
+    }
+
     if (nextStatus === "DELIVERY_FAILED" && !deliveryFailureReason) {
       return NextResponse.json(
         { error: "Delivery failure requires a reason" },

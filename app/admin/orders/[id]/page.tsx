@@ -23,7 +23,21 @@ export default async function AdminOrderDetailPage({
     .from("orders")
     .select(
       `
-    *,
+    id,
+    status,
+    payment_status,
+    total_amount,
+    created_at,
+    user_id,
+    delivery_address,
+    delivery_city,
+    delivery_pincode,
+    phone,
+    payment_method,
+    estimated_delivery_time,
+    delivery_failure_reason,
+    special_instructions,
+    delivery_failure_reason,
     delivery_assignments (
       id,
       delivery_id,

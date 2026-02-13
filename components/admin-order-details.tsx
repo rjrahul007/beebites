@@ -21,6 +21,7 @@ import {
   RefreshCw,
   ArrowLeft,
   Truck,
+  Info,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -36,6 +37,18 @@ import {
 } from "@/lib/domain/order";
 import { useAdminOrderActions } from "@/hooks/use-admin-order-actions";
 
+export interface DeliveryUser {
+  id: string;
+  full_name: string;
+}
+
+export interface DeliveryAssignment {
+  id: string;
+  delivery_id: string;
+  cancelled: boolean;
+  delivery_users: DeliveryUser[] | null;
+}
+
 interface Order {
   id: string;
   user_id: string;
@@ -49,6 +62,8 @@ interface Order {
   payment_status: string;
   special_instructions: string | null;
   created_at: string;
+  delivery_assignments: DeliveryAssignment[] | null;
+  delivery_failure_reason: string | null;
   estimated_delivery_time: string;
 }
 
@@ -83,15 +98,11 @@ export function AdminOrderDetails({
   const { updateStatus, assignDelivery, loadingIds, cancelOrder } =
     useAdminOrderActions();
   const isTerminal = TERMINAL_ORDER_STATUSES.includes(status);
-  // const canUpdate = role === "ADMIN" || allowedStatuses.length > 0;
   const canUpdate =
     !isTerminal && (role === "ADMIN" || allowedStatuses.length > 0);
-
-  // const [isUpdating, setIsUpdating] = useState(false);
   const [deliveryUsers, setDeliveryUsers] = useState<
     Array<{ id: string; full_name: string }>
   >([]);
-  // const [assigning, setAssigning] = useState(false);
   const router = useRouter();
   useEffect(() => {
     let mounted = true;
@@ -110,31 +121,6 @@ export function AdminOrderDetails({
     };
   }, []);
 
-  // const handleCancelWithReason = async () => {
-  //   const reason = window.prompt("Enter cancellation reason:");
-  //   if (!reason) return;
-  //   setIsUpdating(true);
-  //   try {
-  //     const res = await fetch("/api/admin/orders/update", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         orderId: order.id,
-  //         status: ORDER_STATUS.CANCELLED,
-  //         cancelReason: reason,
-  //       }),
-  //     });
-  //     if (!res.ok) throw new Error("Cancel failed");
-
-  //     const json = await res.json();
-  //     if (json?.order?.status) setStatus(json.order.status);
-  //     router.refresh();
-  //   } catch (err) {
-  //     console.error("[v0] cancel error", err);
-  //   } finally {
-  //     setIsUpdating(false);
-  //   }
-  // };
   const handleCancelWithReason = async () => {
     const reason = window.prompt("Enter cancellation reason:");
     if (!reason) return;
@@ -198,7 +184,7 @@ export function AdminOrderDetails({
               }}
               disabled={!canUpdate || loadingIds.has(order.id)}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-50">
                 <SelectValue />
               </SelectTrigger>
 
@@ -236,7 +222,7 @@ export function AdminOrderDetails({
                 }}
                 disabled={loadingIds.has(order.id)}
               >
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-50">
                   <SelectValue
                     placeholder={
                       deliveryUsers.length
@@ -390,6 +376,24 @@ export function AdminOrderDetails({
                     <p className="text-sm text-muted-foreground">
                       {order.special_instructions}
                     </p>
+                  </div>
+                </>
+              )}
+              {order.delivery_failure_reason && (
+                <>
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-red-400" />
+                    <div>
+                      <p className="font-medium ">
+                        {order.status === ORDER_STATUS.DELIVERY_FAILED
+                          ? "Delivery Failure Reason"
+                          : "Cancellation Reason"}
+                      </p>
+                      <p className="text-sm text-red-400">
+                        {order.delivery_failure_reason}
+                      </p>
+                    </div>
                   </div>
                 </>
               )}
