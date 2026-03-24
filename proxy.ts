@@ -242,7 +242,11 @@ export async function updateSession(request: NextRequest) {
         return redirectTo("/admin/delivery", request);
       }
 
-      return redirectTo("/admin", request);
+      if (role === "ADMIN" || role === "KITCHEN") {
+        return redirectTo("/admin", request);
+      }
+
+      return redirectTo("/", request);
     }
   }
 

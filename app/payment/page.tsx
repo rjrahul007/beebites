@@ -15,12 +15,12 @@ export default function PaymentPage() {
 
   const [countdown, setCountdown] = useState(3);
 
-  // ✅ Always clear cart (order already exists)
+  // ✅ Clear cart on successful payment (order already exists)
   useEffect(() => {
     if (status === "success") {
       clearCart();
     }
-  }, [clearCart]);
+  }, [clearCart, status]);
 
   // ✅ Timer only
   useEffect(() => {

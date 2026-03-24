@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/page-layout";
 import { DeliveryOrdersList } from "@/components/delivery-orders-list";
 import { RefreshCw, Package, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  isActionableStatus,
+  ORDER_STATUS,
+  type OrderStatus,
+} from "@/lib/domain/order";
 import { toast } from "sonner";
 
 interface Order {
@@ -42,15 +47,14 @@ export default function DeliveryDashboardPage() {
       setOrders(allOrders);
 
       // Calculate stats
-      const pending = allOrders.filter(
-        (o: Order) =>
-          o.status !== "DELIVERED" && o.status !== "DELIVERY_FAILED",
+      const pending = allOrders.filter((o: Order) =>
+        isActionableStatus(o.status as OrderStatus),
       ).length;
       const delivered = allOrders.filter(
-        (o: Order) => o.status === "DELIVERED",
+        (o: Order) => o.status === ORDER_STATUS.DELIVERED,
       ).length;
       const failed = allOrders.filter(
-        (o: Order) => o.status === "DELIVERY_FAILED",
+        (o: Order) => o.status === ORDER_STATUS.DELIVERY_FAILED,
       ).length;
 
       setStats({ pending, delivered, failed });

@@ -68,7 +68,13 @@ export async function GET(request: Request) {
         .from("profiles")
         .select("id, full_name, phone")
         .in("id", userIds);
-
+      if (error) {
+        console.error("Failed to fetch delivery customer profiles:", error);
+        return NextResponse.json(
+          { error: "Failed to fetch customer details" },
+          { status: 500 },
+        );
+      }
       (profiles || []).forEach((p: any) => (profilesMap[p.id] = p));
     }
 

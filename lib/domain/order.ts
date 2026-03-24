@@ -69,6 +69,22 @@ export const TERMINAL_ORDER_STATUSES: OrderStatus[] = [
   ORDER_STATUS.CANCELLED,
   ORDER_STATUS.PAYMENT_FAILED,
 ];
+
+/**
+ * Checks if a status is terminal (no further transitions possible)
+ */
+export function isTerminalStatus(status: OrderStatus): boolean {
+  return TERMINAL_ORDER_STATUSES.includes(status);
+}
+
+/**
+ * Checks if a status allows delivery actions (mark delivered or failed)
+ * Based on DELIVERY role transition rules: only OUT_FOR_DELIVERY can transition
+ */
+export function isActionableStatus(status: OrderStatus): boolean {
+  return status === ORDER_STATUS.OUT_FOR_DELIVERY;
+}
+
 /**
  * Role-based transitions
  * - ADMIN can set anything

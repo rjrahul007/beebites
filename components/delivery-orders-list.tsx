@@ -36,6 +36,7 @@ import {
   ORDER_STATUS_BADGE_CLASS,
   ORDER_STATUS,
   type OrderStatus,
+  isActionableStatus,
 } from "@/lib/domain/order";
 import { toast } from "sonner";
 
@@ -130,10 +131,7 @@ export function DeliveryOrdersList({
   };
 
   const isPending = (status: string) => {
-    return (
-      status !== ORDER_STATUS.DELIVERED &&
-      status !== ORDER_STATUS.DELIVERY_FAILED
-    );
+    return isActionableStatus(status as OrderStatus);
   };
 
   if (orders.length === 0) {
