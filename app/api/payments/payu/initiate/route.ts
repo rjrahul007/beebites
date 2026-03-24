@@ -296,6 +296,7 @@ export async function POST(req: Request) {
     const payload = buildPayuPayload({
       orderId: order.id,
       amount: total_amount,
+      // amount: 10,
       phone,
       email: user.email,
       firstname: order.customer_name,
