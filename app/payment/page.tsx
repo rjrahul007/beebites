@@ -17,7 +17,9 @@ export default function PaymentPage() {
 
   // ✅ Always clear cart (order already exists)
   useEffect(() => {
-    clearCart();
+    if (status === "success") {
+      clearCart();
+    }
   }, [clearCart]);
 
   // ✅ Timer only

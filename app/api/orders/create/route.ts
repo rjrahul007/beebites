@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     if (profileError || !profile?.full_name) {
       return NextResponse.json(
         { error: "Failed to fetch customer profile" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       console.error("Order creation error:", orderError);
       return NextResponse.json(
         { error: "Failed to create order" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         quantity: item.quantity,
         price: item.price,
         item_name: item.name,
-      })
+      }),
     );
 
     const { error: itemsError } = await supabase
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
       await supabase.from("orders").delete().eq("id", order.id);
       return NextResponse.json(
         { error: "Failed to create order items" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
     console.error("[v0] Order creation error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

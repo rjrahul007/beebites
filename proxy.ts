@@ -175,6 +175,10 @@ const ADMIN_ROUTE_RULES: {
     roles: ["ADMIN", "KITCHEN"],
   },
   {
+    prefix: "/admin/delivery",
+    roles: ["DELIVERY", "ADMIN"],
+  },
+  {
     prefix: "/admin",
     roles: ["ADMIN", "KITCHEN", "DELIVERY"],
   },
@@ -203,13 +207,17 @@ export async function updateSession(request: NextRequest) {
   }
 
   /* ---------- HOME PAGE REDIRECT ---------- */
-  // if (
-  //   user &&
-  //   pathname === "/" &&
-  //   ["ADMIN", "KITCHEN", "DELIVERY"].includes(role ?? "")
-  // ) {
-  //   return redirectTo("/admin", request);
-  // }
+  if (
+    user &&
+    pathname === "/" &&
+    ["ADMIN", "KITCHEN", "DELIVERY"].includes(role ?? "")
+  ) {
+    if (role === "DELIVERY") {
+      return redirectTo("/admin/delivery", request);
+    }
+
+    return redirectTo("/admin", request);
+  }
 
   /* ---------- ADMIN ROUTES ---------- */
   if (pathname.startsWith("/admin")) {
@@ -217,15 +225,24 @@ export async function updateSession(request: NextRequest) {
       return redirectTo("/auth/login", request);
     }
 
+    // Redirect DELIVERY users from /admin root to /admin/delivery
+    if (pathname === "/admin" && role === "DELIVERY") {
+      return redirectTo("/admin/delivery", request);
+    }
+
     const matchedRule = ADMIN_ROUTE_RULES.find((rule) =>
-      pathname.startsWith(rule.prefix)
+      pathname.startsWith(rule.prefix),
     );
 
     if (
       matchedRule &&
       !hasAccess(role as AdminRole | null, matchedRule.roles)
     ) {
-      return redirectTo("/", request);
+      if (role === "DELIVERY") {
+        return redirectTo("/admin/delivery", request);
+      }
+
+      return redirectTo("/admin", request);
     }
   }
 
