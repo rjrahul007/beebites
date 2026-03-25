@@ -207,17 +207,17 @@ export async function updateSession(request: NextRequest) {
   }
 
   /* ---------- HOME PAGE REDIRECT ---------- */
-  // if (
-  //   user &&
-  //   pathname === "/" &&
-  //   ["ADMIN", "KITCHEN", "DELIVERY"].includes(role ?? "")
-  // ) {
-  //   if (role === "DELIVERY") {
-  //     return redirectTo("/admin/delivery", request);
-  //   }
+  if (
+    user &&
+    pathname === "/" &&
+    ["ADMIN", "KITCHEN", "DELIVERY"].includes(role ?? "")
+  ) {
+    if (role === "DELIVERY") {
+      return redirectTo("/admin/delivery", request);
+    }
 
-  //   return redirectTo("/admin", request);
-  // }
+    return redirectTo("/admin", request);
+  }
 
   /* ---------- ADMIN ROUTES ---------- */
   if (pathname.startsWith("/admin")) {
