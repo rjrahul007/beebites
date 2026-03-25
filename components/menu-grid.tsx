@@ -481,34 +481,151 @@ interface MenuGridProps {
 }
 
 // Premium Menu Card Component
+// function MenuCard({ item }: { item: MenuItem }) {
+//   const { addItem, removeItem, getItemQuantity } = useCart();
+//   const [mounted, setMounted] = useState(false);
+
+//   // Ensure cart data is loaded before accessing quantity
+//   useEffect(() => {
+//     setMounted(true);
+//   }, []);
+
+//   const quantity = getItemQuantity(item.id);
+//   const isBeverage = item.category.slug === "beverages";
+
+//   return (
+//     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-0 bg-card shadow-sm p-0">
+//       {/* Premium Image with Overlay */}
+//       <div className="relative h-40 md:h-44 w-full overflow-hidden bg-linear-to-br from-muted/50 to-muted">
+//         <Image
+//           src={item.image_url || "/placeholder.svg"}
+//           alt={item.name}
+//           fill
+//           className="object-cover object-center transition-transform duration-500 group-hover:scale-102"
+//           sizes="(max-width: 768px) 50vw, 33vw"
+//         />
+
+//         {/* Gradient Overlay for better text visibility */}
+//         <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
+
+//         {/* Veg/Non-Veg Badge - Top Left */}
+//         {!isBeverage && (
+//           <div className="absolute top-2 left-2">
+//             {item.is_vegetarian ? (
+//               <div className="flex items-center justify-center w-5 h-5 rounded-sm bg-white shadow-md border-2 border-green-600">
+//                 <div className="w-2 h-2 rounded-full bg-green-600" />
+//               </div>
+//             ) : (
+//               <div className="flex items-center justify-center w-5 h-5 rounded-sm bg-white shadow-md border-2 border-red-600">
+//                 <div className="w-2 h-2 rounded-full bg-red-600" />
+//               </div>
+//             )}
+//           </div>
+//         )}
+
+//         {/* Rating Badge - Top Right (optional - can add rating field later) */}
+//         <Badge className="absolute top-2 right-2 bg-white/95 text-foreground border-0 shadow-md hover:bg-white backdrop-blur-sm">
+//           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-0.5" />
+//           <span className="text-xs font-semibold text-gray-600">4.5</span>
+//         </Badge>
+//       </div>
+
+//       {/* Content Section */}
+//       <div className="p-3.5">
+//         {/* Title */}
+//         <h3 className="font-semibold text-sm leading-tight mb-1.5 line-clamp-1 text-foreground">
+//           {item.name}
+//         </h3>
+
+//         {/* Description */}
+//         <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+//           {item.description}
+//         </p>
+
+//         {/* Info Row - Time & Calories */}
+//         <div className="flex items-center gap-3 mb-3">
+//           <div className="flex items-center gap-1 text-xs text-muted-foreground">
+//             <Clock className="h-3.5 w-3.5" />
+//             <span>{item.preparation_time} min</span>
+//           </div>
+//           <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+//           <div className="flex items-center gap-1 text-xs text-muted-foreground">
+//             <Flame className="h-3.5 w-3.5 text-orange-500" />
+//             <span>{item.calories} cal</span>
+//           </div>
+//         </div>
+
+//         {/* Price & Add Button Row */}
+//         <div className="flex items-center justify-between gap-2">
+//           <div className="flex flex-col">
+//             <span className="text-xl font-bold text-foreground">
+//               ₹{item.price.toFixed(0)}
+//             </span>
+//           </div>
+
+//           {quantity === 0 ? (
+//             <Button
+//               onClick={() => addItem(item)}
+//               size="sm"
+//               className="h-9 px-4 text-xs font-semibold bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-md"
+//             >
+//               <Plus className="h-3.5 w-3.5 mr-1" />
+//               Add
+//             </Button>
+//           ) : (
+//             <div className="flex items-center gap-1 bg-primary/10 rounded-lg px-1 py-1 border border-primary/20 mr-1">
+//               <Button
+//                 variant="ghost"
+//                 size="icon"
+//                 onClick={() => removeItem(item.id)}
+//                 className="h-7 w-7 hover:bg-primary/20 text-primary p-0"
+//               >
+//                 <Minus className="h-3 w-3" />
+//               </Button>
+//               <span className="text-sm font-bold text-primary min-w-5 text-center">
+//                 {quantity}
+//               </span>
+//               <Button
+//                 variant="ghost"
+//                 size="icon"
+//                 onClick={() => addItem(item)}
+//                 className="h-7 w-7 hover:bg-primary/20 text-primary p-0"
+//               >
+//                 <Plus className="h-3 w-3" />
+//               </Button>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </Card>
+//   );
+// }
 function MenuCard({ item }: { item: MenuItem }) {
   const { addItem, removeItem, getItemQuantity } = useCart();
   const [mounted, setMounted] = useState(false);
 
-  // Ensure cart data is loaded before accessing quantity
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const quantity = getItemQuantity(item.id);
+  const quantity = mounted ? getItemQuantity(item.id) : 0;
   const isBeverage = item.category.slug === "beverages";
 
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-0 bg-card shadow-sm p-0">
-      {/* Premium Image with Overlay */}
-      <div className="relative h-40 md:h-44 w-full overflow-hidden bg-linear-to-br from-muted/50 to-muted">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl md:rounded-2xl bg-[#111] border border-white/6 hover:border-[#F5A623]/30 transition-all duration-300 hover:shadow-[0_8px_32px_rgba(245,166,35,0.12)] hover:-translate-y-0.5">
+      {/* Image */}
+      <div className="relative h-32 md:h-44 w-full overflow-hidden bg-[#1a1a1a] shrink-0">
         <Image
           src={item.image_url || "/placeholder.svg"}
           alt={item.name}
           fill
-          className="object-cover object-center transition-transform duration-500 group-hover:scale-102"
+          className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
           sizes="(max-width: 768px) 50vw, 33vw"
         />
 
-        {/* Gradient Overlay for better text visibility */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#111]/80 via-transparent to-transparent" />
 
-        {/* Veg/Non-Veg Badge - Top Left */}
+        {/* Veg/Non-veg */}
         {!isBeverage && (
           <div className="absolute top-2 left-2">
             {item.is_vegetarian ? (
@@ -523,81 +640,86 @@ function MenuCard({ item }: { item: MenuItem }) {
           </div>
         )}
 
-        {/* Rating Badge - Top Right (optional - can add rating field later) */}
-        <Badge className="absolute top-2 right-2 bg-white/95 text-foreground border-0 shadow-md hover:bg-white backdrop-blur-sm">
-          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-0.5" />
-          <span className="text-xs font-semibold text-gray-600">4.5</span>
-        </Badge>
+        {/* Rating */}
+        <div className="absolute top-2 right-2 flex items-center gap-0.5 md:gap-1 bg-black/50 backdrop-blur-sm border border-white/10 rounded-full px-1.5 md:px-2.5 py-0.5 md:py-1">
+          <Star className="h-2.5 w-2.5 md:h-3 md:w-3 fill-[#F5A623] text-[#F5A623]" />
+          <span className="text-[10px] md:text-[11px] font-semibold text-white">
+            4.5
+          </span>
+        </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-3.5">
-        {/* Title */}
-        <h3 className="font-semibold text-sm leading-tight mb-1.5 line-clamp-1 text-foreground">
+      {/* Content */}
+      <div className="flex flex-col flex-1 p-2.5 md:p-4 gap-1.5 md:gap-3">
+        {/* Name */}
+        <h3 className="font-semibold text-[13px] md:text-[15px] leading-snug line-clamp-1 text-white tracking-tight">
           {item.name}
         </h3>
 
         {/* Description */}
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+        <p className="text-[11px] md:text-[12px] text-[#666] line-clamp-1 md:line-clamp-2 leading-relaxed">
           {item.description}
         </p>
 
-        {/* Info Row - Time & Calories */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{item.preparation_time} min</span>
+        {/* Meta pills */}
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-1 bg-white/5 rounded-full px-2 py-0.5 md:px-2.5 md:py-1">
+            <Clock className="h-2.5 w-2.5 md:h-3 md:w-3 text-[#F5A623]" />
+            <span className="text-[10px] md:text-[11px] text-[#aaa]">
+              {item.preparation_time}m
+            </span>
           </div>
-          <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Flame className="h-3.5 w-3.5 text-orange-500" />
-            <span>{item.calories} cal</span>
+          <div className="flex items-center gap-1 bg-white/5 rounded-full px-2 py-0.5 md:px-2.5 md:py-1">
+            <Flame className="h-2.5 w-2.5 md:h-3 md:w-3 text-orange-500" />
+            <span className="text-[10px] md:text-[11px] text-[#aaa]">
+              {item.calories} cal
+            </span>
           </div>
         </div>
 
-        {/* Price & Add Button Row */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col">
-            <span className="text-xl font-bold text-foreground">
-              ₹{item.price.toFixed(0)}
+        <div className="flex-1" />
+
+        {/* Price + CTA */}
+        <div className="flex items-center justify-between mt-0.5 md:mt-1">
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-[10px] md:text-[11px] text-[#555] font-medium">
+              ₹
+            </span>
+            <span className="text-lg md:text-2xl font-bold text-white leading-none tracking-tight">
+              {item.price.toFixed(0)}
             </span>
           </div>
 
           {quantity === 0 ? (
-            <Button
+            <button
               onClick={() => addItem(item)}
-              size="sm"
-              className="h-9 px-4 text-xs font-semibold bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200 hover:shadow-md"
+              className="flex items-center gap-1 h-7 md:h-9 px-2.5 md:px-4 rounded-lg md:rounded-xl bg-[#F5A623] hover:bg-[#e09820] active:scale-95 transition-all duration-150 text-[#0A0A0A] text-[11px] md:text-xs font-bold tracking-wide shadow-[0_4px_14px_rgba(245,166,35,0.35)] hover:shadow-[0_4px_18px_rgba(245,166,35,0.5)]"
             >
-              <Plus className="h-3.5 w-3.5 mr-1" />
-              Add
-            </Button>
+              <Plus className="h-3 w-3 md:h-3.5 md:w-3.5" />
+              ADD
+            </button>
           ) : (
-            <div className="flex items-center gap-1 bg-primary/10 rounded-lg px-1 py-1 border border-primary/20 mr-1">
-              <Button
-                variant="ghost"
-                size="icon"
+            <div className="flex items-center gap-0 bg-[#F5A623]/10 border border-[#F5A623]/25 rounded-lg md:rounded-xl overflow-hidden">
+              <button
                 onClick={() => removeItem(item.id)}
-                className="h-7 w-7 hover:bg-primary/20 text-primary p-0"
+                className="flex items-center justify-center h-7 w-7 md:h-9 md:w-9 hover:bg-[#F5A623]/20 active:scale-95 transition-all duration-100 text-[#F5A623]"
               >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="text-sm font-bold text-primary min-w-5 text-center">
+                <Minus className="h-3 w-3 md:h-3.5 md:w-3.5" />
+              </button>
+              <span className="text-[12px] md:text-sm font-bold text-[#F5A623] min-w-[18px] md:min-w-[20px] text-center select-none">
                 {quantity}
               </span>
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={() => addItem(item)}
-                className="h-7 w-7 hover:bg-primary/20 text-primary p-0"
+                className="flex items-center justify-center h-7 w-7 md:h-9 md:w-9 hover:bg-[#F5A623]/20 active:scale-95 transition-all duration-100 text-[#F5A623]"
               >
-                <Plus className="h-3 w-3" />
-              </Button>
+                <Plus className="h-3 w-3 md:h-3.5 md:w-3.5" />
+              </button>
             </div>
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
